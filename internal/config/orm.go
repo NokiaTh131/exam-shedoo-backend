@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"shedoo-backend/internal/models"
+
 	_ "github.com/joho/godotenv/autoload"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -31,7 +33,7 @@ func New() *Service {
 	if err != nil {
 		panic("failed to connect to database")
 	}
-	db.AutoMigrate()
+	db.AutoMigrate(&models.CourseExam{})
 	dbInstance = &Service{DB: db}
 	return dbInstance
 }
