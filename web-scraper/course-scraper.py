@@ -1,9 +1,12 @@
+import argparse
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import pandas as pd
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import threading
+import psycopg2
+
 
 class CourseScraperPool:
     def __init__(self, max_workers=4):
@@ -11,7 +14,6 @@ class CourseScraperPool:
         self.local_data = threading.local()
     
     def get_browser_page(self):
-        """Get or create browser and page for current thread"""
         if not hasattr(self.local_data, 'page'):
             self.local_data.playwright = sync_playwright().start()
             self.local_data.browser = self.local_data.playwright.chromium.launch(headless=True)
@@ -20,24 +22,16 @@ class CourseScraperPool:
         return self.local_data.page
     
     def cleanup_browser(self):
-        """Clean up browser resources for current thread"""
         if hasattr(self.local_data, 'browser'):
             self.local_data.browser.close()
             self.local_data.playwright.stop()
     
     def scrape_course(self, course_code: str):
-        """
-        Scrape a single course by code. Returns a list of dicts (rows) or empty list if no data.
-        """
         try:
             page = self.get_browser_page()
-            
-            # Clear and fill the course code
             page.fill("#fcourse", "")
             page.fill("#fcourse", course_code)
             page.click("#button2")
-            
-            # Wait for response with timeout
             page.wait_for_load_state("networkidle", timeout=10000)
             
             html = page.content()
@@ -55,57 +49,80 @@ class CourseScraperPool:
                     section = cols[3].get_text(strip=True)
                     if not section.isdigit():
                         continue
-                    
-                    record = {
-                        "course_id": course_code,
-                        "course_title": cols[2].get_text(strip=True),
-                        "lec_section": cols[3].get_text(strip=True),
-                        "lab_section": cols[4].get_text(strip=True),
-                        "lec_credit": cols[5].get_text(strip=True),
-                        "lab_credit": cols[6].get_text(strip=True),
-                        "day": cols[7].get_text(strip=True),
-                        "time": cols[8].get_text(strip=True).rstrip("-"),
-                        "room": cols[9].get_text(strip=True),
-                        "lecturer": cols[10].get_text(strip=True),
-                    }
-                    data.append(record)
-            
+
+                    day_cell = cols[7]
+                    time_cell = cols[8]
+                    room_cell = cols[9]
+
+                    rooms = []
+                    for element in room_cell.find_all(["div", "span"]):
+                        text = element.get_text(strip=True)
+                        if text and text != "-":
+                            rooms.append(text)
+
+                    days = []
+                    for element in day_cell.find_all(["div", "span"]):
+                        text = element.get_text(strip=True)
+                        if text and text != "-":
+                            days.append(text)
+
+                    times = []
+                    for element in time_cell.find_all(["div", "span"]):
+                        text = element.get_text(strip=True)
+                        if text and text != "-":
+                            times.append(text)
+
+                    for i in range(len(days)):
+                        record = {
+                            "course_code": course_code,
+                            "title": cols[2].get_text(strip=True),
+                            "lec_section": cols[3].get_text(strip=True) or None,
+                            "lab_section": cols[4].get_text(strip=True) or None,
+                            "credit": float(cols[5].get_text(strip=True) or 0),
+                            "days": days[i] if i < len(days) else None,
+                            "start_time": (times[i].split("-")[0] if "-" in times[i] else None),
+                            "end_time": (times[i].split("-")[1] if "-" in times[i] else None),
+                            "room": rooms[i] if i < len(rooms) else None,
+                        }
+                        data.append(record)
             return data
             
         except Exception as e:
             print(f"Error scraping {course_code}: {e}")
             return []
 
+
 def worker_task(args):
-    """Worker function for thread pool"""
     scraper, course_code = args
     return scraper.scrape_course(course_code)
 
-def scrape_all_courses_threaded(start=0, end=999999, save_csv="all_courses.csv", max_workers=4, batch_size=100):
-    """
-    Scrape courses using ThreadPoolExecutor for improved performance
-    
-    Args:
-        start: Starting course number
-        end: Ending course number  
-        save_csv: Output CSV filename
-        max_workers: Number of concurrent threads
-        batch_size: Save progress every N courses
-    """
+
+def insert_courses(conn, courses):
+    with conn.cursor() as cur:
+        cur.executemany(
+            """
+            INSERT INTO courses (course_code, title, lab_section, lec_section, room, credit, days, start_time, end_time)
+            VALUES (%(course_code)s, %(title)s, %(lab_section)s, %(lec_section)s, %(room)s, %(credit)s, %(days)s, %(start_time)s, %(end_time)s)
+            ON CONFLICT DO NOTHING;
+            """,
+            courses
+        )
+    conn.commit()
+
+
+def scrape_all_courses_threaded(start=0, end=999999, max_workers=4, batch_size=100, db_config=None):
     all_data = []
     course_codes = [f"{i:06d}" for i in range(start, end + 1)]
     
-    # Create scraper instance
     scraper = CourseScraperPool(max_workers)
-    
     print(f"Starting scrape with {max_workers} workers for {len(course_codes)} courses...")
-    
+
+    conn = psycopg2.connect(**db_config)
+
     try:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Prepare arguments for workers
             tasks = [(scraper, code) for code in course_codes]
             
-            # Process with progress bar
             with tqdm(total=len(course_codes), desc="Scraping courses") as pbar:
                 batch_data = []
                 
@@ -115,38 +132,51 @@ def scrape_all_courses_threaded(start=0, end=999999, save_csv="all_courses.csv",
                     
                     pbar.update(1)
                     
-                    # Save progress periodically
-                    if (i + 1) % batch_size == 0:
+                    if (i + 1) % batch_size == 0 and batch_data:
+                        insert_courses(conn, batch_data)
                         all_data.extend(batch_data)
-                        df_temp = pd.DataFrame(all_data)
-                        df_temp.to_csv(f"temp_{save_csv}", index=False)
                         batch_data = []
-                        print(f"\nSaved progress: {len(all_data)} records so far...")
+                        print(f"\nInserted {len(all_data)} records so far...")
                 
-                # Add remaining data
-                all_data.extend(batch_data)
+                if batch_data:
+                    insert_courses(conn, batch_data)
+                    all_data.extend(batch_data)
     
     finally:
-        # Clean up resources
         try:
             scraper.cleanup_browser()
         except:
             pass
-    
-    # Save final results
-    df = pd.DataFrame(all_data)
-    df.to_csv(save_csv, index=False)
-    
-    # Clean up temp file
-    try:
-        import os
-        os.remove(f"temp_{save_csv}")
-    except:
-        pass
+        conn.close()
     
     print(f"\nCompleted! Scraped {len(all_data)} course records.")
-    return df
+    return all_data
+
 
 if __name__ == "__main__":
-    df = scrape_all_courses_threaded()
-    print("Scraped all courses")
+    parser = argparse.ArgumentParser(description="Scrape CMU courses by course code range")
+    parser.add_argument("--start", type=int, required=True, help="Start course code (integer)")
+    parser.add_argument("--end", type=int, required=True, help="End course code (integer)")
+    parser.add_argument("--workers", type=int, default=4, help="Number of concurrent workers")
+    parser.add_argument("--dbname", type=str, required=True, help="Postgres DB name")
+    parser.add_argument("--user", type=str, required=True, help="Postgres user")
+    parser.add_argument("--password", type=str, required=True, help="Postgres password")
+    parser.add_argument("--host", type=str, default="localhost", help="Postgres host")
+    parser.add_argument("--port", type=int, default=5432, help="Postgres port")
+    args = parser.parse_args()
+    
+    db_config = {
+        "dbname": args.dbname,
+        "user": args.user,
+        "password": args.password,
+        "host": args.host,
+        "port": args.port,
+    }
+    
+    scrape_all_courses_threaded(
+        start=args.start,
+        end=args.end,
+        max_workers=args.workers,
+        db_config=db_config
+    )
+
