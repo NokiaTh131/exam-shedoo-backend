@@ -16,7 +16,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	}))
 
 	s.App.Get("/", s.HelloWorldHandler)
-
+	s.App.Post("/enrollments/upload", s.EnrollmentHandler.UploadEnrollments)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
