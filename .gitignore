@@ -34,3 +34,4 @@ main
 
 chromedriver-*
 run-script.md
+tmp/
