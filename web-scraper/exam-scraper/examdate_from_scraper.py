@@ -66,7 +66,7 @@ def scrape_and_insert(term_arg, db_config):
                                 midterm_exam_start_time,
                                 midterm_exam_end_time
                             ) VALUES (%s, %s, %s, %s)
-                            ON CONFLICT (course_code, section)
+                            ON CONFLICT (course_code, lec_section, lab_section)
                             DO UPDATE SET
                                 midterm_exam_date = EXCLUDED.midterm_exam_date,
                                 midterm_exam_start_time = EXCLUDED.midterm_exam_start_time,
@@ -80,7 +80,7 @@ def scrape_and_insert(term_arg, db_config):
                                 final_exam_start_time,
                                 final_exam_end_time
                             ) VALUES (%s, %s, %s, %s)
-                            ON CONFLICT (course_code, section)
+                            ON CONFLICT (course_code, lec_section, lab_section)
                             DO UPDATE SET
                                 final_exam_date = EXCLUDED.final_exam_date,
                                 final_exam_start_time = EXCLUDED.final_exam_start_time,
