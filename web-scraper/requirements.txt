@@ -1,0 +1,8 @@
+argparse
+playwright
+beautifulsoup4
+pandas
+tqdm
+psycopg2-binary
+pdfplumber
+requests

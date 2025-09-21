@@ -6,7 +6,7 @@ from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
 import threading
 import psycopg2
-
+import json
 
 class CourseScraperPool:
     def __init__(self, max_workers=4):
@@ -53,6 +53,7 @@ class CourseScraperPool:
                     day_cell = cols[7]
                     time_cell = cols[8]
                     room_cell = cols[9]
+                    lecturer_cell = cols[10]
 
                     rooms = []
                     for element in room_cell.find_all(["div", "span"]):
@@ -72,6 +73,11 @@ class CourseScraperPool:
                         if text and text != "-":
                             times.append(text)
 
+                    lecturers = []
+                    for element in lecturer_cell.stripped_strings:
+                        text = element.strip()
+                        lecturers.append(text)
+
                     for i in range(len(days)):
                         record = {
                             "course_code": course_code,
@@ -83,6 +89,7 @@ class CourseScraperPool:
                             "start_time": (times[i].split("-")[0] if "-" in times[i] else None),
                             "end_time": (times[i].split("-")[1] if "-" in times[i] else None),
                             "room": rooms[i] if i < len(rooms) else None,
+                            "lecturers": lecturers or None,
                         }
                         data.append(record)
             return data
@@ -97,18 +104,28 @@ def worker_task(args):
     return scraper.scrape_course(course_code)
 
 
+
 def insert_courses(conn, courses):
+    for c in courses:
+        if isinstance(c.get("lecturers"), list):
+            c["lecturers"] = json.dumps(c["lecturers"])
+    
     with conn.cursor() as cur:
         cur.executemany(
             """
-            INSERT INTO courses (course_code, title, lab_section, lec_section, room, credit, days, start_time, end_time)
-            VALUES (%(course_code)s, %(title)s, %(lab_section)s, %(lec_section)s, %(room)s, %(credit)s, %(days)s, %(start_time)s, %(end_time)s)
+            INSERT INTO courses (
+                course_code, title, lab_section, lec_section, room, credit,
+                days, start_time, end_time, lecturers
+            )
+            VALUES (
+                %(course_code)s, %(title)s, %(lab_section)s, %(lec_section)s, %(room)s,
+                %(credit)s, %(days)s, %(start_time)s, %(end_time)s, %(lecturers)s
+            )
             ON CONFLICT DO NOTHING;
             """,
             courses
         )
     conn.commit()
-
 
 def scrape_all_courses_threaded(start=0, end=999999, max_workers=4, batch_size=100, db_config=None):
     all_data = []
