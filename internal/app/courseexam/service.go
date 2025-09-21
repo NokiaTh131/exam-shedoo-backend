@@ -35,6 +35,10 @@ func (s *CourseExamService) GetExamByCourseSections(courseCode, lecSection, labS
     return s.repo.GetByCourseSections(courseCode, lecSection, labSection)
 }
 
-func (s *CourseExamService) UpdateExam(id uint, updates map[string]interface{}) (*models.CourseExam, error) {
+func (s *CourseExamService) UpdateExam(id uint, updates *models.CourseExam) error {
     return s.repo.UpdateByID(id, updates)
+}
+
+func (s *CourseExamService) FindByID(id uint) (*models.CourseExam, error) {
+    return s.repo.FindByID(id)
 }

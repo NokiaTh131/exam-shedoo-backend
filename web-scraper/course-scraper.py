@@ -32,7 +32,7 @@ class CourseScraperPool:
             page.fill("#fcourse", "")
             page.fill("#fcourse", course_code)
             page.click("#button2")
-            page.wait_for_load_state("networkidle", timeout=10000)
+            page.wait_for_load_state("networkidle", timeout=60000)
             
             html = page.content()
             soup = BeautifulSoup(html, "html.parser")

@@ -28,19 +28,18 @@ func (r *CourseExamRepository) GetByCourseSections(courseCode, lecSection, labSe
     return &exam, nil
 }
 
-func (r *CourseExamRepository) UpdateByID(id uint, updates map[string]interface{}) (*models.CourseExam, error) {
+func (r *CourseExamRepository) FindByID(id uint) (*models.CourseExam, error) {
     var exam models.CourseExam
     if err := r.db.First(&exam, id).Error; err != nil {
         return nil, err
     }
-
-    if err := r.db.Model(&exam).Updates(updates).Error; err != nil {
-        return nil, err
-    }
-    
-    if err := r.db.First(&exam, id).Error; err != nil {
-        return nil, err
-    }
-	
     return &exam, nil
+}
+
+func (r *CourseExamRepository) UpdateByID(id uint, updates *models.CourseExam) error {
+    respon := r.db.Model(&updates).Where("id = ?", id).Updates(updates)
+    if respon.RowsAffected == 0{
+        return gorm.ErrInvalidField
+    }
+    return nil
 }

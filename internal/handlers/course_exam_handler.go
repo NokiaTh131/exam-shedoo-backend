@@ -54,6 +54,7 @@ func (h *CourseExamHandler) GetByCourseSections(c *fiber.Ctx) error {
     return c.Status(fiber.StatusOK).JSON(exam)
 }
 
+
 // PUT /course_exams/:id
 func (h *CourseExamHandler) UpdateExam(c *fiber.Ctx) error {
     idStr := c.Params("id")
@@ -61,15 +62,21 @@ func (h *CourseExamHandler) UpdateExam(c *fiber.Ctx) error {
     if err != nil {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid id"})
     }
+    exam, err := h.courseexamService.FindByID(uint(id))
+    if err != nil {
+        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+            "message": "failed to find exam",
+        })
+    }
 
     // body update
     type UpdateCourseExamRequest struct {
-        MidtermExamDate      *string `json:"midterm_exam_date"`
-        FinalExamDate        *string `json:"final_exam_date"`
-        MidtermExamStartTime *string `json:"midterm_exam_start_time"`
-        FinalExamStartTime   *string `json:"final_exam_start_time"`
-        MidtermExamEndTime   *string `json:"midterm_exam_end_time"`
-        FinalExamEndTime     *string `json:"final_exam_end_time"`
+        MidtermExamDate      *string `json:"midterm_exam_date,omitempty"`
+        FinalExamDate        *string `json:"final_exam_date,omitempty"`
+        MidtermExamStartTime *string `json:"midterm_exam_start_time,omitempty"`
+        FinalExamStartTime   *string `json:"final_exam_start_time,omitempty"`
+        MidtermExamEndTime   *string `json:"midterm_exam_end_time,omitempty"`
+        FinalExamEndTime     *string `json:"final_exam_end_time,omitempty"`
     }
 
     var req UpdateCourseExamRequest
@@ -77,39 +84,19 @@ func (h *CourseExamHandler) UpdateExam(c *fiber.Ctx) error {
         return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
     }
 
-    // map[string]interface{}  update  field is not nil
-    updates := make(map[string]interface{})
-    if req.MidtermExamDate != nil {
-        updates["midterm_exam_date"] = req.MidtermExamDate
-    }
-    if req.FinalExamDate != nil {
-        updates["final_exam_date"] = req.FinalExamDate
-    }
-    if req.MidtermExamStartTime != nil {
-        updates["midterm_exam_start_time"] = req.MidtermExamStartTime
-    }
-    if req.FinalExamStartTime != nil {
-        updates["final_exam_start_time"] = req.FinalExamStartTime
-    }
-    if req.MidtermExamEndTime != nil {
-        updates["midterm_exam_end_time"] = req.MidtermExamEndTime
-    }
-    if req.FinalExamEndTime != nil {
-        updates["final_exam_end_time"] = req.FinalExamEndTime
-    }
+    exam.MidtermExamDate = req.MidtermExamDate
+    exam.FinalExamDate = req.FinalExamDate
+    exam.MidtermExamStartTime = req.MidtermExamStartTime
+    exam.FinalExamStartTime = req.FinalExamStartTime
+    exam.MidtermExamEndTime = req.MidtermExamEndTime
+    exam.FinalExamEndTime = req.FinalExamEndTime
 
-    if len(updates) == 0 {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "no fields to update"})
-    }
-
-    updated, err := h.courseexamService.UpdateExam(uint(id), updates)
-    if err != nil {
-        
+    if err := h.courseexamService.UpdateExam(uint(id), exam); err != nil { 
         if err.Error() == "record not found" {
             return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "exam not found"})
         }
         return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
     }
 
-    return c.Status(fiber.StatusOK).JSON(updated)
+    return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "updated examdate"})
 }
