@@ -23,6 +23,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	enroll.Get("/:studentCode", s.EnrollmentHandler.GetByStudentCode)
 	enroll.Delete("/:id", s.EnrollmentHandler.DeleteByID)
 
+	// routes courseexam
+    exam := s.App.Group("/course_exams")
+	exam.Post("/examdate", s.CourseExamHandler.CreateExam)
+	exam.Get("/course", s.CourseExamHandler.GetByCourseSections)
+	exam.Put("/:id", s.CourseExamHandler.UpdateExam)
+
 	course := s.App.Group("/courses")
 	course.Get("/lecturer", s.CourseHandler.GetCoursesByLecturer)
 	course.Get("/code-sec", s.CourseHandler.GetCourseByCodeSec)

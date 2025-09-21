@@ -48,4 +48,3 @@ func (r *EnrollmentRepository) GetByCourseAndSections(courseCode, lecSection, la
         Error
     return enrollments, err
 }
-

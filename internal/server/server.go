@@ -2,6 +2,7 @@ package server
 
 import (
 	"shedoo-backend/internal/app/course"
+	"shedoo-backend/internal/app/courseexam"
 	"shedoo-backend/internal/app/enrollment"
 	"shedoo-backend/internal/config"
 	"shedoo-backend/internal/handlers"
@@ -14,6 +15,7 @@ type FiberServer struct {
 	*fiber.App
 	EnrollmentHandler *handlers.EnrollmentHandler
 	CourseHandler     *handlers.CourseHandler
+	CourseExamHandler *handlers.CourseExamHandler
 }
 
 func New() *FiberServer {
@@ -21,6 +23,9 @@ func New() *FiberServer {
 	enrollmentRepo := repositories.NewEnrollmentRepository(dbService.DB)
 	enrollmentService := enrollment.NewEnrollmentService(enrollmentRepo)
 	enrollmentHandler := handlers.NewEnrollmentHandler(enrollmentService)
+	course_examsRepo := repositories.NewCourseExamRepository(dbService.DB)
+	course_examsService := courseexam.NewCourseExamService(course_examsRepo)
+	course_examsHandler := handlers.NewCourseExamHandler(course_examsService)
 
 	courseRepo := repositories.NewCourseRepository(dbService.DB)
 	courseService := course.NewCourseService(courseRepo)
@@ -33,6 +38,7 @@ func New() *FiberServer {
 		}),
 		EnrollmentHandler: enrollmentHandler,
 		CourseHandler:     courseHandler,
+		CourseExamHandler: course_examsHandler,
 	}
 
 	return server
