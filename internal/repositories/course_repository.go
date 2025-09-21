@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"shedoo-backend/internal/models"
@@ -19,10 +18,6 @@ func NewCourseRepository(db *gorm.DB) *CourseRepository {
 
 func (r *CourseRepository) GetCoursesByLecturer(lecturerName string) ([]models.Course, error) {
 	var courses []models.Course
-	lecturerJSON, err := json.Marshal([]string{lecturerName})
-	if err != nil {
-		return nil, err
-	}
-	err = r.db.Where("lecturers @> ?", lecturerJSON).Find(&courses).Error
+	err := r.db.Where("lecturers @> ?", fmt.Sprintf(`["%s"]`, lecturerName)).Find(&courses).Error
 	return courses, err
 }
