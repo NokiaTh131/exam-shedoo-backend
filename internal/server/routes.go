@@ -24,7 +24,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	enroll.Delete("/:id", s.EnrollmentHandler.DeleteByID)
 
 	course := s.App.Group("/courses")
-	course.Get("/", s.CourseHandler.GetCoursesByLecturer)
+	course.Get("/lecturer", s.CourseHandler.GetCoursesByLecturer)
+	course.Get("/code-sec", s.CourseHandler.GetCourseByCodeSec)
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {

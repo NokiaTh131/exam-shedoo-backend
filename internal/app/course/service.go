@@ -16,3 +16,7 @@ func NewCourseService(repo *repositories.CourseRepository) *CourseService {
 func (s *CourseService) GetCoursesByLecturer(lecturerName string) ([]models.Course, error) {
 	return s.repo.GetCoursesByLecturer(lecturerName)
 }
+
+func (s *CourseService) GetCourseByCodeSec(courseCode, lecSection, labSection string) ([]models.Course, error) {
+	return s.repo.GetCoursesByLecLabSection(courseCode, lecSection, labSection)
+}
