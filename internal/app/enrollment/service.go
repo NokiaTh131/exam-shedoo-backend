@@ -20,3 +20,15 @@ func (s *EnrollmentService) LoadEnrollments(filePath string) ([]models.Enrollmen
 func (s *EnrollmentService) ImportEnrollments(enrollments []models.Enrollment) error {
 	return s.repo.BulkInsert(enrollments)
 }
+
+func (s *EnrollmentService) GetEnrolledByStudent(studentCode string) ([]models.Enrollment, error) {
+    return s.repo.GetByStudentCode(studentCode)
+}
+
+func (s *EnrollmentService) DeleteEnrolledByID(id uint) error {
+    return s.repo.DeleteByID(id)
+}
+
+func (s *EnrollmentService) GetStudentsByCourseSections(courseCode, lecSection, labSection string) ([]models.Enrollment, error) {
+    return s.repo.GetByCourseAndSections(courseCode, lecSection, labSection)
+}

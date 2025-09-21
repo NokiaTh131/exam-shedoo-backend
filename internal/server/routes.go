@@ -16,7 +16,13 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	}))
 
 	s.App.Get("/", s.HelloWorldHandler)
-	s.App.Post("/enrollments/upload", s.EnrollmentHandler.UploadEnrollments)
+	// routes enrollments
+    enroll := s.App.Group("/enrollments")
+	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
+	enroll.Get("/course", s.EnrollmentHandler.GetByCourseSections)
+    enroll.Get("/:studentCode", s.EnrollmentHandler.GetByStudentCode)
+    enroll.Delete("/:id", s.EnrollmentHandler.DeleteByID)
+
 }
 
 func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
