@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-type ScrapeJob struct {
+type ScrapeCourseJob struct {
 	ID        uint      `gorm:"primaryKey"`
 	StartCode int       `gorm:"not null"`
 	EndCode   int       `gorm:"not null"`

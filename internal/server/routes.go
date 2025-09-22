@@ -34,6 +34,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	// routes scrape jobs
 	scrape := s.App.Group("/scrape")
-	scrape.Post("/start", s.ScrapeJobHandler.CreateScrapeJob)
-	scrape.Get("/status/:id", s.ScrapeJobHandler.GetScrapeJobByID)
+	scrape.Post("/course/start", s.ScrapeJobHandler.CreateScrapeJob)
+	scrape.Get("/course/status/:id", s.ScrapeJobHandler.GetScrapeJobByID)
+	scrape.Post("/exams/start/:term", s.ScrapeJobHandler.CreateExamScrapeJob)
+	scrape.Get("/exams/status/:id", s.ScrapeJobHandler.GetExamScrapeJobByID)
 }

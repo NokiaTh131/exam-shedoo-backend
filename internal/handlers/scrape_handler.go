@@ -26,7 +26,12 @@ func NewScrapeJobHandler(scrapeJobService *scrapejobs.ScrapeJobService) *ScrapeJ
 func (h *ScrapeJobHandler) GetScrapeJobByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	idInt, err := strconv.Atoi(id)
-	job, err := h.scrapeJobService.GetScrapeJobByID(uint(idInt))
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid job ID",
+		})
+	}
+	job, err := h.scrapeJobService.GetCourseScrapeJobByID(uint(idInt))
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Could not get scrape job",
@@ -43,17 +48,47 @@ func (h *ScrapeJobHandler) CreateScrapeJob(c *fiber.Ctx) error {
 		})
 	}
 
-	job := models.ScrapeJob{
+	job := models.ScrapeCourseJob{
 		StartCode: req.Start,
 		EndCode:   req.End,
 		Workers:   req.Workers,
 		Status:    "pending",
 		Total:     req.End - req.Start + 1,
 	}
-	if err := h.scrapeJobService.CreateScrapeJob(&job); err != nil {
+	if err := h.scrapeJobService.CreateCourseScrapeJob(&job); err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"error": "Could not create scrape job",
 		})
 	}
 	return c.JSON(fiber.Map{"job_id": job.ID, "status": "pending"})
+}
+
+func (h *ScrapeJobHandler) CreateExamScrapeJob(c *fiber.Ctx) error {
+	term := c.Params("term")
+	job := models.ScrapeExamJob{
+		Term: term,
+	}
+	if err := h.scrapeJobService.CreateExamScrapeJob(&job); err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Could not create exam scrape job",
+		})
+	}
+	return c.JSON(fiber.Map{"job_id": job.ID, "status": "pending"})
+}
+
+func (h *ScrapeJobHandler) GetExamScrapeJobByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid job ID",
+		})
+	}
+	job, err := h.scrapeJobService.GetExamScrapeJobByID(uint(idInt))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Could not get scrape job",
+		})
+	}
+	return c.JSON(job)
 }

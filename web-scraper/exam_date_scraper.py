@@ -94,22 +94,16 @@ def scrape_and_insert(term_arg, db_config):
 
 
 if __name__ == "__main__":
+    print("exam date scraper started.")
     parser = argparse.ArgumentParser(description="Scrape CMU exams and insert into PostgreSQL")
     parser.add_argument("--term", required=True, help="Term ID, e.g. 168")
-    parser.add_argument("--host", required=True, help="PostgreSQL host")
-    parser.add_argument("--port", required=True, type=int, help="PostgreSQL port")
-    parser.add_argument("--dbname", required=True, help="PostgreSQL database name")
-    parser.add_argument("--user", required=True, help="PostgreSQL username")
-    parser.add_argument("--password", required=True, help="PostgreSQL password")
     args = parser.parse_args()
-
     db_config = {
-        "host": args.host,
-        "port": args.port,
-        "dbname": args.dbname,
-        "user": args.user,
-        "password": args.password
+        "host": "localhost",
+        "port": 5432,
+        "dbname": "blueprint",
+        "user": "melkey",
+        "password": "password1234"
     }
-
     scrape_and_insert(args.term, db_config)
 
