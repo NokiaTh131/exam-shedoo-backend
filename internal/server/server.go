@@ -4,6 +4,7 @@ import (
 	"shedoo-backend/internal/app/course"
 	"shedoo-backend/internal/app/courseexam"
 	"shedoo-backend/internal/app/enrollment"
+	scrapejobs "shedoo-backend/internal/app/scrape_jobs"
 	"shedoo-backend/internal/config"
 	"shedoo-backend/internal/handlers"
 	"shedoo-backend/internal/repositories"
@@ -16,6 +17,7 @@ type FiberServer struct {
 	EnrollmentHandler *handlers.EnrollmentHandler
 	CourseHandler     *handlers.CourseHandler
 	CourseExamHandler *handlers.CourseExamHandler
+	ScrapeJobHandler  *handlers.ScrapeJobHandler
 }
 
 func New() *FiberServer {
@@ -23,6 +25,7 @@ func New() *FiberServer {
 	enrollmentRepo := repositories.NewEnrollmentRepository(dbService.DB)
 	enrollmentService := enrollment.NewEnrollmentService(enrollmentRepo)
 	enrollmentHandler := handlers.NewEnrollmentHandler(enrollmentService)
+
 	course_examsRepo := repositories.NewCourseExamRepository(dbService.DB)
 	course_examsService := courseexam.NewCourseExamService(course_examsRepo)
 	course_examsHandler := handlers.NewCourseExamHandler(course_examsService)
@@ -30,6 +33,10 @@ func New() *FiberServer {
 	courseRepo := repositories.NewCourseRepository(dbService.DB)
 	courseService := course.NewCourseService(courseRepo)
 	courseHandler := handlers.NewCourseHandler(courseService)
+
+	scrapeJobRepo := repositories.NewScrapeJobRepository(dbService.DB)
+	scrapeJobService := scrapejobs.NewScrapeJobService(scrapeJobRepo)
+	scrapeJobHandler := handlers.NewScrapeJobHandler(scrapeJobService)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -39,6 +46,7 @@ func New() *FiberServer {
 		EnrollmentHandler: enrollmentHandler,
 		CourseHandler:     courseHandler,
 		CourseExamHandler: course_examsHandler,
+		ScrapeJobHandler:  scrapeJobHandler,
 	}
 
 	return server

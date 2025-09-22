@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
@@ -15,7 +14,6 @@ func (s *FiberServer) RegisterFiberRoutes() {
 		MaxAge:           300,
 	}))
 
-	s.App.Get("/", s.HelloWorldHandler)
 	// routes enrollments
 	enroll := s.App.Group("/enrollments")
 	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
@@ -24,20 +22,18 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	enroll.Delete("/:id", s.EnrollmentHandler.DeleteByID)
 
 	// routes courseexam
-    exam := s.App.Group("/course_exams")
+	exam := s.App.Group("/course_exams")
 	exam.Post("/examdate", s.CourseExamHandler.CreateExam)
 	exam.Get("/course", s.CourseExamHandler.GetByCourseSections)
 	exam.Put("/:id", s.CourseExamHandler.UpdateExam)
 
+	// routes courses
 	course := s.App.Group("/courses")
 	course.Get("/lecturer", s.CourseHandler.GetCoursesByLecturer)
 	course.Get("/code-sec", s.CourseHandler.GetCourseByCodeSec)
-}
 
-func (s *FiberServer) HelloWorldHandler(c *fiber.Ctx) error {
-	resp := fiber.Map{
-		"message": "Hello World",
-	}
-
-	return c.JSON(resp)
+	// routes scrape jobs
+	scrape := s.App.Group("/scrape")
+	scrape.Post("/start", s.ScrapeJobHandler.CreateScrapeJob)
+	scrape.Get("/status/:id", s.ScrapeJobHandler.GetScrapeJobByID)
 }
