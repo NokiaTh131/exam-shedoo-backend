@@ -122,5 +122,6 @@ def worker_loop(db_conf):
 
 
 if __name__ == "__main__":
+    print("course scraper started.")
     worker_loop(dict(dbname="blueprint", user="melkey", password="password1234", host="localhost", port=5432))
 
