@@ -92,14 +92,14 @@ def scrape_all_courses(start, end, workers, batch_size, db, job_id):
 
 def get_job(conn):
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
-        cur.execute("SELECT * FROM scrape_jobs WHERE status='pending' ORDER BY id LIMIT 1")
+        cur.execute("SELECT * FROM scrape_course_jobs WHERE status='pending' ORDER BY id LIMIT 1")
         return cur.fetchone()
 
 
 def update_job(conn, job_id, status, progress=None):
     with conn.cursor() as cur:
         cur.execute(
-            "UPDATE scrape_jobs SET status=%s, progress=COALESCE(%s,progress), updated_at=now() WHERE id=%s",
+            "UPDATE scrape_course_jobs SET status=%s, progress=COALESCE(%s,progress), updated_at=now() WHERE id=%s",
             (status, progress, job_id)
         )
     conn.commit()
