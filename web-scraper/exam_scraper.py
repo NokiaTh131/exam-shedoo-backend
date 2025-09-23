@@ -1,6 +1,7 @@
-import time, requests, psycopg2, traceback
+import time, requests, psycopg2, traceback, os
 from psycopg2.extras import RealDictCursor
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 
 EXAM_TYPES = ["MIDTERM", "FINAL"]
 
@@ -85,7 +86,7 @@ def scrape_and_insert(term, conn):
 # ------------------------------
 # Worker loop
 # ------------------------------
-def worker_loop(db_config):
+def worker_loop(db_config: dict):
     print("Exam scraper worker started...")
     conn = psycopg2.connect(**db_config)
     while True:
@@ -107,12 +108,17 @@ def worker_loop(db_config):
 # Entry point
 # ------------------------------
 if __name__ == "__main__":
-    db_config = {
-        "host": "localhost",
-        "port": 5432,
-        "dbname": "blueprint",
-        "user": "melkey",
-        "password": "password1234"
-    }
-    worker_loop(db_config)
+    print("Course scraper started...")
 
+    # Load environment variables from .env file
+    load_dotenv()
+
+    db_config = dict(
+        dbname=os.getenv("POSTGRES_DATABASE"),
+        user=os.getenv("POSTGRES_USERNAME"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port=int(os.getenv("POSTGRES_PORT", 5432))  # default to 5432 if not set
+    )
+
+    worker_loop(db_config)

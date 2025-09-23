@@ -1,9 +1,11 @@
-import time, json, psycopg2, threading
+import time, json, psycopg2, threading, os
 from psycopg2.extras import RealDictCursor
 from concurrent.futures import ThreadPoolExecutor
 from tqdm import tqdm
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
 
 # ==============================================================
 # Scraper
@@ -105,7 +107,7 @@ def update_job(conn, job_id, status, progress=None):
     conn.commit()
 
 
-def worker_loop(db_conf):
+def worker_loop(db_conf: dict):
     conn = psycopg2.connect(**db_conf)
     while True:
         job = get_job(conn)
@@ -123,5 +125,16 @@ def worker_loop(db_conf):
 
 if __name__ == "__main__":
     print("Course scraper started...")
-    worker_loop(dict(dbname="blueprint", user="melkey", password="password1234", host="localhost", port=5432))
 
+    # Load environment variables from .env file
+    load_dotenv()
+
+    db_config = dict(
+        dbname=os.getenv("POSTGRES_DATABASE"),
+        user=os.getenv("POSTGRES_USERNAME"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host=os.getenv("POSTGRES_HOST"),
+        port=int(os.getenv("POSTGRES_PORT", 5432))  # default to 5432 if not set
+    )
+
+    worker_loop(db_config)
