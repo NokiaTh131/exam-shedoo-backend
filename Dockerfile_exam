@@ -1,0 +1,15 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# คัดลอก requirements
+COPY web-scraper/requirements.txt .
+
+# ติดตั้ง Python packages
+RUN pip install --no-cache-dir -r requirements.txt
+
+# คัดลอกไฟล์ scraper
+COPY web-scraper/exam_scraper.py .
+
+# รัน scraper ตอน container start
+CMD ["python", "exam_scraper.py"]
