@@ -14,6 +14,10 @@ func (s *FiberServer) RegisterFiberRoutes() {
 		MaxAge:           300,
 	}))
 
+	// routes auth
+	auth := s.App.Group("/auth")
+	auth.Post("/signin", s.AuthHandler.SignIn)
+
 	// routes enrollments
 	enroll := s.App.Group("/enrollments")
 	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
