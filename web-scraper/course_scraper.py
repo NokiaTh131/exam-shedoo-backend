@@ -79,16 +79,24 @@ def insert_courses(conn, courses):
 
 def scrape_all_courses(start, end, workers, batch_size, db, job_id):
     scraper = CourseScraperPool()
-    codes   = [f"{i:06d}" for i in range(start, end+1)]
+
+    start_int = int(start)
+    end_int = int(end)
+
+    width = max(len(str(start)), len(str(end)))
+    codes = [str(i).zfill(width) for i in range(start_int, end_int + 1)]
+
     with ThreadPoolExecutor(max_workers=workers) as ex, tqdm(total=len(codes), desc=f"Job {job_id}") as bar:
         batch = []
         for i, results in enumerate(ex.map(scraper.scrape_course, codes), 1):
             batch.extend(results)
             bar.update(1)
             if i % batch_size == 0 and batch:
-                insert_courses(db, batch); batch.clear()
-                update_job(db, job_id, "running", i)
-        if batch: insert_courses(db, batch)
+                insert_courses(db, batch)
+                batch.clear()
+                update_job(db, job_id, "running")
+        if batch:
+            insert_courses(db, batch)
     scraper.cleanup()
 
 
@@ -98,11 +106,11 @@ def get_job(conn):
         return cur.fetchone()
 
 
-def update_job(conn, job_id, status, progress=None):
+def update_job(conn, job_id, status):
     with conn.cursor() as cur:
         cur.execute(
-            "UPDATE scrape_course_jobs SET status=%s, progress=COALESCE(%s,progress), updated_at=now() WHERE id=%s",
-            (status, progress, job_id)
+            "UPDATE scrape_course_jobs SET status=%s, updated_at=now() WHERE id=%s",
+            (status, job_id)
         )
     conn.commit()
 
@@ -113,10 +121,10 @@ def worker_loop(db_conf: dict):
         job = get_job(conn)
         if job:
             print(f"Starting job {job['id']}...")
-            update_job(conn, job['id'], "running", 0)
+            update_job(conn, job['id'], "running")
             try:
                 scrape_all_courses(job['start_code'], job['end_code'], job['workers'], 100, conn, job['id'])
-                update_job(conn, job['id'], "completed", job['total'])
+                update_job(conn, job['id'], "completed")
                 print(f"Job {job['id']} completed")
             except Exception as e:
                 print("Job failed:", e); update_job(conn, job['id'], "failed")
