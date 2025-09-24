@@ -14,4 +14,7 @@ type Course struct {
 	StartTime  *string                     `gorm:"column:start_time"`
 	EndTime    *string                     `gorm:"column:end_time"`
 	Lecturers  datatypes.JSONSlice[string] `gorm:"type:json"`
+
+	Enrollments []Enrollment `gorm:"foreignKey:CourseID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
+	Exams       []CourseExam `gorm:"foreignKey:CourseID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 }

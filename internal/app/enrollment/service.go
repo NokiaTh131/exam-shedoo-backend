@@ -1,6 +1,8 @@
 package enrollment
 
 import (
+	"fmt"
+
 	"shedoo-backend/internal/models"
 	"shedoo-backend/internal/repositories"
 )
@@ -18,17 +20,30 @@ func (s *EnrollmentService) LoadEnrollments(filePath string) ([]models.Enrollmen
 }
 
 func (s *EnrollmentService) ImportEnrollments(enrollments []models.Enrollment) error {
+	for i := range enrollments {
+		var course models.Course
+		err := s.repo.DB.Where("course_code = ? AND lec_section = ? AND lab_section = ?",
+			enrollments[i].CourseCode,
+			enrollments[i].LecSection,
+			enrollments[i].LabSection,
+		).First(&course).Error
+		if err != nil {
+			return fmt.Errorf("course not found for code=%s lec=%s lab=%s: %w",
+				enrollments[i].CourseCode, enrollments[i].LecSection, enrollments[i].LabSection, err)
+		}
+		enrollments[i].CourseID = course.ID
+	}
 	return s.repo.BulkInsert(enrollments)
 }
 
 func (s *EnrollmentService) GetEnrolledByStudent(studentCode string) ([]models.Enrollment, error) {
-    return s.repo.GetByStudentCode(studentCode)
+	return s.repo.GetByStudentCode(studentCode)
 }
 
 func (s *EnrollmentService) DeleteEnrolledByID(id uint) error {
-    return s.repo.DeleteByID(id)
+	return s.repo.DeleteByID(id)
 }
 
 func (s *EnrollmentService) GetStudentsByCourseSections(courseCode, lecSection, labSection string) ([]models.Enrollment, error) {
-    return s.repo.GetByCourseAndSections(courseCode, lecSection, labSection)
+	return s.repo.GetByCourseAndSections(courseCode, lecSection, labSection)
 }

@@ -14,9 +14,9 @@ type ScrapeJobHandler struct {
 }
 
 type ScrapeJobRequest struct {
-	Start   int `json:"start"`
-	End     int `json:"end"`
-	Workers int `json:"workers"`
+	Start   string `json:"start"`
+	End     string `json:"end"`
+	Workers int    `json:"workers"`
 }
 
 func NewScrapeJobHandler(scrapeJobService *scrapejobs.ScrapeJobService) *ScrapeJobHandler {
@@ -53,7 +53,6 @@ func (h *ScrapeJobHandler) CreateScrapeJob(c *fiber.Ctx) error {
 		EndCode:   req.End,
 		Workers:   req.Workers,
 		Status:    "pending",
-		Total:     req.End - req.Start + 1,
 	}
 	if err := h.scrapeJobService.CreateCourseScrapeJob(&job); err != nil {
 		return c.Status(500).JSON(fiber.Map{

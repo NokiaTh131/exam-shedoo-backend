@@ -8,11 +8,11 @@ import (
 )
 
 type EnrollmentRepository struct {
-	db *gorm.DB
+	DB *gorm.DB
 }
 
 func NewEnrollmentRepository(db *gorm.DB) *EnrollmentRepository {
-	return &EnrollmentRepository{db: db}
+	return &EnrollmentRepository{DB: db}
 }
 
 func (r *EnrollmentRepository) BulkInsert(enrollments []models.Enrollment) error {
@@ -20,31 +20,32 @@ func (r *EnrollmentRepository) BulkInsert(enrollments []models.Enrollment) error
 		return nil
 	}
 
-	return r.db.Clauses(clause.OnConflict{
+	return r.DB.Clauses(clause.OnConflict{
 		DoNothing: true,
 	}).Create(&enrollments).Error
 }
 
 func (r *EnrollmentRepository) GetByStudentCode(studentCode string) ([]models.Enrollment, error) {
-    var enrollments []models.Enrollment
-    err := r.db.
-        Where("student_code = ?", studentCode).
-        Find(&enrollments).
-        Error
-    return enrollments, err
+	var enrollments []models.Enrollment
+	err := r.DB.
+		Where("student_code = ?", studentCode).
+		Find(&enrollments).
+		Error
+	return enrollments, err
 }
 
 func (r *EnrollmentRepository) DeleteByID(id uint) error {
-    //hard delete Unscoped
-    err := r.db.Unscoped().Delete(&models.Enrollment{}, id).Error
-    return err
+	// hard delete Unscoped
+	err := r.DB.Unscoped().Delete(&models.Enrollment{}, id).Error
+	return err
 }
 
 func (r *EnrollmentRepository) GetByCourseAndSections(courseCode, lecSection, labSection string) ([]models.Enrollment, error) {
-    var enrollments []models.Enrollment
-    err := r.db.
-        Where("course_code = ? AND lec_section = ? AND lab_section = ?", courseCode, lecSection, labSection).
-        Find(&enrollments).
-        Error
-    return enrollments, err
+	var enrollments []models.Enrollment
+	err := r.DB.
+		Where("course_code = ? AND lec_section = ? AND lab_section = ?", courseCode, lecSection, labSection).
+		Find(&enrollments).
+		Error
+	return enrollments, err
 }
+

@@ -33,7 +33,7 @@ func New() *Service {
 	if err != nil {
 		panic("failed to connect to database")
 	}
-	db.AutoMigrate(&models.CourseExam{}, &models.Course{}, &models.Enrollment{}, &models.ScrapeCourseJob{}, &models.ScrapeExamJob{})
+	db.AutoMigrate(&models.Course{}, &models.Enrollment{}, &models.ScrapeCourseJob{}, &models.ScrapeExamJob{}, &models.CourseExam{})
 	dbInstance = &Service{DB: db}
 	return dbInstance
 }

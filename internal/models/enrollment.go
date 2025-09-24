@@ -1,8 +1,10 @@
 package models
 
 type Enrollment struct {
-	ID          uint   `gorm:"primaryKey;autoIncrement"`
+	ID          int    `gorm:"primaryKey;autoIncrement"`
 	StudentCode string `gorm:"size:9;not null;uniqueIndex:idx_enrollment_unique"`
+	CourseID    int    `gorm:"not null"`
+	Course      Course `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	CourseCode  string `gorm:"size:6;not null;uniqueIndex:idx_enrollment_unique"`
 	LecSection  string `gorm:"column:lec_section;uniqueIndex:idx_enrollment_unique"`
 	LabSection  string `gorm:"column:lab_section;uniqueIndex:idx_enrollment_unique"`

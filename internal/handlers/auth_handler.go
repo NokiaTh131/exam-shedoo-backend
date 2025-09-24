@@ -33,7 +33,7 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 		Value:    token,
 		Path:     "/",
 		Domain:   h.cookieDomain,
-		MaxAge:   3600,
+		MaxAge:   7200,
 		HTTPOnly: true,
 		Secure:   h.isProd,
 		SameSite: "Lax",
