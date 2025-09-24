@@ -60,26 +60,35 @@ def scrape_and_insert(term, conn):
                 for course in courses:
                     if course.upper() == "REGULAR EXAM": 
                         continue
+
+                    # Fetch course_id first
+                    cursor.execute("SELECT id FROM courses WHERE course_code=%s LIMIT 1", (course,))
+                    result = cursor.fetchone()
+                    if not result:
+                        print(f"Skipping {course} because it's not in courses table")
+                        continue
+                    course_id = result[0]
+
                     if exam_type == "MIDTERM":
                         cursor.execute("""
-                            INSERT INTO course_exams(course_code, midterm_exam_date, midterm_exam_start_time, midterm_exam_end_time)
-                            VALUES (%s,%s,%s,%s)
+                            INSERT INTO course_exams(course_id, course_code, lec_section, lab_section, midterm_exam_date, midterm_exam_start_time, midterm_exam_end_time)
+                            VALUES (%s, %s, '000', '000', %s, %s, %s)
                             ON CONFLICT(course_code, lec_section, lab_section)
                             DO UPDATE SET
                                 midterm_exam_date=EXCLUDED.midterm_exam_date,
                                 midterm_exam_start_time=EXCLUDED.midterm_exam_start_time,
                                 midterm_exam_end_time=EXCLUDED.midterm_exam_end_time
-                        """, (course, date, start_time, end_time))
+                        """, (course_id, course, date, start_time, end_time))
                     else:
                         cursor.execute("""
-                            INSERT INTO course_exams(course_code, final_exam_date, final_exam_start_time, final_exam_end_time)
-                            VALUES (%s,%s,%s,%s)
+                            INSERT INTO course_exams(course_id, course_code, lec_section, lab_section, final_exam_date, final_exam_start_time, final_exam_end_time)
+                            VALUES (%s, %s, '000', '000', %s, %s, %s)
                             ON CONFLICT(course_code, lec_section, lab_section)
                             DO UPDATE SET
                                 final_exam_date=EXCLUDED.final_exam_date,
                                 final_exam_start_time=EXCLUDED.final_exam_start_time,
                                 final_exam_end_time=EXCLUDED.final_exam_end_time
-                        """, (course, date, start_time, end_time))
+                        """, (course_id, course, date, start_time, end_time))
     conn.commit()
     cursor.close()
 
