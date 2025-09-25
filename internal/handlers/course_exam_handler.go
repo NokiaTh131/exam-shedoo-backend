@@ -42,28 +42,6 @@ func (h *CourseExamHandler) CreateExam(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(created)
 }
 
-// GET /course_exams/course?courseCode=XXX&lecSection=YYY&labSection=ZZZ
-func (h *CourseExamHandler) GetByCourseSections(c *fiber.Ctx) error {
-	courseCode := c.Query("courseCode")
-	lecSection := c.Query("lecSection")
-	labSection := c.Query("labSection")
-
-	if courseCode == "" || lecSection == "" || labSection == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "courseCode, lecSection, labSection are required"})
-	}
-
-	exam, err := h.courseexamService.GetExamByCourseSections(courseCode, lecSection, labSection)
-	if err != nil {
-
-		if err == fiber.ErrNotFound || err.Error() == "record not found" {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "exam not found"})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(exam)
-}
-
 // PUT /course_exams/:id
 func (h *CourseExamHandler) UpdateExam(c *fiber.Ctx) error {
 	idStr := c.Params("id")
@@ -100,3 +78,32 @@ func (h *CourseExamHandler) UpdateExam(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "updated examdate"})
 }
 
+func (h *CourseExamHandler) GetExams(c *fiber.Ctx) error {
+	studentCode := c.Params("studentCode")
+
+	exams, err := h.courseexamService.GetExamsByStudent(studentCode)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if exams == nil {
+		return c.Status(404).JSON(fiber.Map{"error": "No exams found"})
+	}
+
+	return c.JSON(exams)
+}
+
+func (h *CourseExamHandler) GetMidtermExamReport(c *fiber.Ctx) error {
+	lecturerName := c.Params("lecturerName")
+
+	reports, err := h.courseexamService.GetMidtermExamReport(lecturerName)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if len(reports) == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "No exams found"})
+	}
+
+	return c.JSON(reports)
+}

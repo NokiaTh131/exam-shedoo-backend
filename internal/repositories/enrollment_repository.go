@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"shedoo-backend/internal/dto"
 	"shedoo-backend/internal/models"
 
 	"gorm.io/gorm"
@@ -25,27 +26,55 @@ func (r *EnrollmentRepository) BulkInsert(enrollments []models.Enrollment) error
 	}).Create(&enrollments).Error
 }
 
-func (r *EnrollmentRepository) GetByStudentCode(studentCode string) ([]models.Enrollment, error) {
-	var enrollments []models.Enrollment
-	err := r.DB.
-		Where("student_code = ?", studentCode).
-		Find(&enrollments).
-		Error
-	return enrollments, err
-}
-
 func (r *EnrollmentRepository) DeleteByID(id uint) error {
 	// hard delete Unscoped
 	err := r.DB.Unscoped().Delete(&models.Enrollment{}, id).Error
 	return err
 }
 
-func (r *EnrollmentRepository) GetByCourseAndSections(courseCode, lecSection, labSection string) ([]models.Enrollment, error) {
+func (r *EnrollmentRepository) GetEnrollmentsByStudent(studentCode string) ([]dto.EnrollmentResponse, error) {
 	var enrollments []models.Enrollment
-	err := r.DB.
-		Where("course_code = ? AND lec_section = ? AND lab_section = ?", courseCode, lecSection, labSection).
-		Find(&enrollments).
-		Error
-	return enrollments, err
+	err := r.DB.Preload("Course").Where("student_code = ?", studentCode).Find(&enrollments).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var responses []dto.EnrollmentResponse
+	for _, e := range enrollments {
+		var instructors []dto.LecturerResponse
+		for _, l := range e.Course.Lecturers {
+			instructors = append(instructors, dto.LecturerResponse{Name: l})
+		}
+
+		resp := dto.EnrollmentResponse{
+			ID:          e.ID,
+			CourseCode:  e.CourseCode,
+			CourseName:  e.Course.Title,
+			LecSection:  e.LecSection,
+			LabSection:  e.LabSection,
+			Credit:      derefFloat32(e.Course.Credit),
+			Instructors: instructors,
+			Room:        derefString(e.Course.Room),
+			Days:        derefString(e.Course.Days),
+			StartTime:   derefString(e.Course.StartTime),
+			EndTime:     derefString(e.Course.EndTime),
+		}
+		responses = append(responses, resp)
+	}
+
+	return responses, nil
 }
 
+func derefString(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
+
+func derefFloat32(f *float32) float32 {
+	if f != nil {
+		return *f
+	}
+	return 0
+}

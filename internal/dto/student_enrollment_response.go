@@ -5,6 +5,7 @@ type LecturerResponse struct {
 }
 
 type EnrollmentResponse struct {
+	ID          int                `json:"id"`
 	CourseCode  string             `json:"course_code"`
 	LecSection  string             `json:"lec_section"`
 	CourseName  string             `json:"course_name"`

@@ -1,7 +1,7 @@
 package dto
 
-type StudentExamResponse struct {
-	ID               int     `json:"id"`
+type ProfessorCourseResponse struct {
+	CourseID         uint    `json:"course_id"`
 	CourseCode       string  `json:"course_code"`
 	CourseName       string  `json:"course_name"`
 	LecSection       string  `json:"lec_section"`

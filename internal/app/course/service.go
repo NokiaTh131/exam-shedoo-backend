@@ -1,7 +1,7 @@
 package course
 
 import (
-	"shedoo-backend/internal/models"
+	"shedoo-backend/internal/dto"
 	"shedoo-backend/internal/repositories"
 )
 
@@ -13,10 +13,10 @@ func NewCourseService(repo *repositories.CourseRepository) *CourseService {
 	return &CourseService{repo: repo}
 }
 
-func (s *CourseService) GetCoursesByLecturer(lecturerName string) ([]models.Course, error) {
+func (s *CourseService) GetCoursesByLecturer(lecturerName string) ([]dto.ProfessorCourseResponse, error) {
 	return s.repo.GetCoursesByLecturer(lecturerName)
 }
 
-func (s *CourseService) GetCourseByCodeSec(courseCode, lecSection, labSection string) ([]models.Course, error) {
-	return s.repo.GetCoursesByLecLabSection(courseCode, lecSection, labSection)
+func (s *CourseService) GetEnrolledStudents(courseID uint) ([]dto.CourseEnrollmentStudentResponse, error) {
+	return s.repo.GetEnrolledStudents(courseID)
 }

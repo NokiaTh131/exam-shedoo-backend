@@ -22,27 +22,29 @@ func (h *CourseHandler) GetCoursesByLecturer(c *fiber.Ctx) error {
 			"error": "Could not get courses",
 		})
 	}
-	return c.JSON(fiber.Map{
-		"courses": courses,
-	})
+	return c.JSON(courses)
 }
 
-func (h *CourseHandler) GetCourseByCodeSec(c *fiber.Ctx) error {
-	courseCode := c.Query("courseCode")
-	lecSection := c.Query("lecSection")
-	labSection := c.Query("labSection")
-
-	if courseCode == "" || lecSection == "" || labSection == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "courseCode, lecSection, labSection are required",
-		})
-	}
-	courses, err := h.courseService.GetCourseByCodeSec(courseCode, lecSection, labSection)
+func (h *CourseHandler) GetEnrolledStudents(c *fiber.Ctx) error {
+	courseID, err := c.ParamsInt("course_id")
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid course ID",
 		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(courses)
+	students, err := h.courseService.GetEnrolledStudents(uint(courseID))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"error": "Could not get enrolled students",
+		})
+	}
+
+	if len(students) == 0 {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "No students enrolled in this course",
+		})
+	}
+
+	return c.JSON(students)
 }
