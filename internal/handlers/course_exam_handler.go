@@ -93,16 +93,16 @@ func (h *CourseExamHandler) GetExams(c *fiber.Ctx) error {
 	return c.JSON(exams)
 }
 
-func (h *CourseExamHandler) GetMidtermExamReport(c *fiber.Ctx) error {
-	lecturerName := c.Params("lecturerName")
-
-	reports, err := h.courseexamService.GetMidtermExamReport(lecturerName)
+func (h *CourseExamHandler) GetExamReport(c *fiber.Ctx) error {
+	courseId := c.Params("courseId")
+	courseIdInt, err := strconv.Atoi(courseId)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid courseId"})
 	}
 
-	if len(reports) == 0 {
-		return c.Status(404).JSON(fiber.Map{"error": "No exams found"})
+	reports, err := h.courseexamService.GetExamReport(courseIdInt)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(reports)

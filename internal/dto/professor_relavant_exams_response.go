@@ -1,33 +1,37 @@
 package dto
 
-type LecturerCourseMidterm struct {
-	CourseID      uint   `json:"course_id"`
+type ExamReport struct {
+	CourseID         int     `json:"course_id"`
+	CourseCode       string  `json:"course_code"`
+	CourseName       string  `json:"course_name"`
+	StudentCount     int     `json:"student_count"`
+	MidtermDate      *string `json:"midterm_date"`
+	MidtermStartTime *string `json:"midterm_start_time"`
+	MidtermEndTime   *string `json:"midterm_end_time"`
+	FinalDate        *string `json:"final_date"`
+	FinalStartTime   *string `json:"final_start_time"`
+	FinalEndTime     *string `json:"final_end_time"`
+	LecSection       *string `json:"lec_section"`
+	LabSection       *string `json:"lab_section"`
+}
+
+type ProfessorReportCourseResponse struct {
+	MidtermResponse *[]TermResponse `json:"midterm"`
+	FinalResponse   *[]TermResponse `json:"final"`
+}
+
+type TermResponse struct {
+	Date    string          `json:"date"`
+	Start   string          `json:"start_time"`
+	End     string          `json:"end_time"`
+	Courses []CourseReponse `json:"courses"`
+}
+
+type CourseReponse struct {
+	CourseID      int    `json:"course_id"`
 	CourseCode    string `json:"course_code"`
 	CourseName    string `json:"course_name"`
 	LecSection    string `json:"lec_section"`
 	LabSection    string `json:"lab_section"`
-	NumOfStudents int64  `json:"number_of_relevant_students"`
-	ExamDate      string `json:"exam_date"`
-	StartTime     string `json:"start_time"`
-	EndTime       string `json:"end_time"`
-}
-
-type MidtermExamReportResponse struct {
-	Exams []LecturerCourseMidterm `json:"exams"`
-}
-
-type LecturerCourseFinal struct {
-	CourseID      uint   `json:"course_id"`
-	CourseCode    string `json:"course_code"`
-	CourseName    string `json:"course_name"`
-	LecSection    string `json:"lec_section"`
-	LabSection    string `json:"lab_section"`
-	NumOfStudents int64  `json:"number_of_relevant_students"`
-	ExamDate      string `json:"exam_date"`
-	StartTime     string `json:"start_time"`
-	EndTime       string `json:"end_time"`
-}
-
-type FinalExamReportResponse struct {
-	Exams []LecturerCourseFinal `json:"exams"`
+	NumOfStudents int    `json:"student_count"`
 }

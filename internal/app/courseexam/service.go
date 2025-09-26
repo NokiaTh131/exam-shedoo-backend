@@ -48,6 +48,6 @@ func (s *CourseExamService) GetExamsByStudent(studentCode string) ([]dto.Student
 	return s.repo.GetExamsByStudent(studentCode)
 }
 
-func (s *CourseExamService) GetMidtermExamReport(lecturerName string) ([]dto.LecturerCourseMidterm, error) {
-	return s.repo.GetMidtermExamReport(lecturerName)
+func (s *CourseExamService) GetExamReport(courseId int) (dto.ProfessorReportCourseResponse, error) {
+	return s.repo.GetExamReport(courseId)
 }

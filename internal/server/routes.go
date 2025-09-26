@@ -45,5 +45,5 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	course.Get("/enrolled_students/:course_id", s.CourseHandler.GetEnrolledStudents)
 	exam.Post("/examdate", s.CourseExamHandler.CreateExam)
 	exam.Put("/:id", s.CourseExamHandler.UpdateExam)
-	exam.Get("/midterm/:lecturerName", s.CourseExamHandler.GetMidtermExamReport)
+	exam.Get("/report/:courseId", s.CourseExamHandler.GetExamReport)
 }
