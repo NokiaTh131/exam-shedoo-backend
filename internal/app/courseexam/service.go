@@ -51,3 +51,7 @@ func (s *CourseExamService) GetExamsByStudent(studentCode string) ([]dto.Student
 func (s *CourseExamService) GetExamReport(courseId int) (dto.ProfessorReportCourseResponse, error) {
 	return s.repo.GetExamReport(courseId)
 }
+
+func (s *CourseExamService) ParseAndInsertPDF(pdfPath, examType string) error {
+    return s.repo.ParseAndInsert(pdfPath, examType)
+}

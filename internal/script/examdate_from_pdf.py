@@ -113,11 +113,11 @@ if __name__ == "__main__":
 
     # DB config อ่านจาก .env
     db_config = {
-        "host": os.getenv("DB_HOST"),
-        "port": int(os.getenv("DB_PORT", 5432)),
-        "dbname": os.getenv("DB_NAME"),
-        "user": os.getenv("DB_USER"),
-        "password": os.getenv("DB_PASSWORD")
+        "host": os.getenv("POSTGRES_HOST"),
+        "port": int(os.getenv("POSTGRES_PORT", 5432)),
+        "dbname": os.getenv("POSTGRES_DATABASE"),
+        "user": os.getenv("POSTGRES_USERNAME"),
+        "password": os.getenv("POSTGRES_PASSWORD")
     }
 
     parse_pdf_and_insert(args.pdf, db_config, args.exam_type)

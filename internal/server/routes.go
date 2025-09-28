@@ -54,4 +54,5 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	course := professor.Group("/courses")
 	course.Get("/", middlewares.ProfessorOwnsResource(), s.CourseHandler.GetCoursesByLecturer)
 	course.Get("/enrolled_students/:course_id", s.CourseHandler.GetEnrolledStudents)
+	exam.Post("/exampdf", s.CourseExamHandler.UploadPDF)
 }

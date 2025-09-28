@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+	"os/exec"
 	"shedoo-backend/internal/dto"
 	"shedoo-backend/internal/models"
 
@@ -184,4 +186,14 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 	}
 
 	return *response, nil
+}
+
+func (r *CourseExamRepository) ParseAndInsert(pdfPath string, examType string) error {
+    cmd := exec.Command("python3", "internal/script/examdate_from_pdf.py", "--pdf", pdfPath, "--exam_type", examType)
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        return fmt.Errorf("failed to run Python script: %v, output: %s", err, string(output))
+    }
+    fmt.Println(string(output))
+    return nil
 }
