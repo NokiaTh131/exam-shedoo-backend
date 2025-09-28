@@ -5,6 +5,7 @@ import (
 	"shedoo-backend/internal/app/course"
 	"shedoo-backend/internal/app/courseexam"
 	"shedoo-backend/internal/app/enrollment"
+	admin "shedoo-backend/internal/app/role"
 	scrapejobs "shedoo-backend/internal/app/scrape_jobs"
 	"shedoo-backend/internal/config"
 	"shedoo-backend/internal/handlers"
@@ -21,6 +22,7 @@ type FiberServer struct {
 	ScrapeJobHandler  *handlers.ScrapeJobHandler
 	AuthHandler       *handlers.AuthHandler
 	UserHandler       *handlers.UserHandler
+	RoleService       *admin.RoleService
 }
 
 func New() *FiberServer {
@@ -54,6 +56,9 @@ func New() *FiberServer {
 
 	userHandler := handlers.NewUserHandler()
 
+	adminRepo := repositories.NewAdminRepository(dbService.DB)
+	roleService := admin.NewRoleService(adminRepo)
+
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
 			ServerHeader: "shedoo-backend",
@@ -65,6 +70,7 @@ func New() *FiberServer {
 		ScrapeJobHandler:  scrapeJobHandler,
 		AuthHandler:       authHandler,
 		UserHandler:       userHandler,
+		RoleService:       roleService,
 	}
 
 	return server

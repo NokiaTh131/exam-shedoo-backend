@@ -33,8 +33,8 @@ func (h *ScrapeJobHandler) GetScrapeJobByID(c *fiber.Ctx) error {
 	}
 	job, err := h.scrapeJobService.GetCourseScrapeJobByID(uint(idInt))
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": "Could not get scrape job",
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Course scrape job not found",
 		})
 	}
 	return c.JSON(job)
@@ -85,8 +85,8 @@ func (h *ScrapeJobHandler) GetExamScrapeJobByID(c *fiber.Ctx) error {
 	}
 	job, err := h.scrapeJobService.GetExamScrapeJobByID(uint(idInt))
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{
-			"error": "Could not get scrape job",
+		return c.Status(404).JSON(fiber.Map{
+			"error": "Exam scrape job not found",
 		})
 	}
 	return c.JSON(job)
