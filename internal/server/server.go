@@ -23,6 +23,7 @@ type FiberServer struct {
 	AuthHandler       *handlers.AuthHandler
 	UserHandler       *handlers.UserHandler
 	RoleService       *admin.RoleService
+	AdminHandler      *handlers.AdminHandler
 }
 
 func New() *FiberServer {
@@ -58,6 +59,7 @@ func New() *FiberServer {
 
 	adminRepo := repositories.NewAdminRepository(dbService.DB)
 	roleService := admin.NewRoleService(adminRepo)
+	adminHandler := handlers.NewAdminHandler(roleService)
 
 	server := &FiberServer{
 		App: fiber.New(fiber.Config{
@@ -71,6 +73,7 @@ func New() *FiberServer {
 		AuthHandler:       authHandler,
 		UserHandler:       userHandler,
 		RoleService:       roleService,
+		AdminHandler:      adminHandler,
 	}
 
 	return server

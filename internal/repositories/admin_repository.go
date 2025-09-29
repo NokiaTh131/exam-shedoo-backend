@@ -36,3 +36,20 @@ func (r *AdminRepository) ListAdmins() ([]models.Admin, error) {
 	err := r.DB.Find(&admins).Error
 	return admins, err
 }
+
+func ClearAllData(db *gorm.DB) error {
+	if err := db.Exec("DELETE FROM enrollments").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM course_exams").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM courses").Error; err != nil {
+		return err
+	}
+	if err := db.Exec("DELETE FROM admins").Error; err != nil {
+		return err
+	}
+
+	return nil
+}

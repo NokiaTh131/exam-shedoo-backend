@@ -28,6 +28,10 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// === Admin routes ===
 	admin := s.App.Group("/admin", middlewares.RequireRoles("admin"))
 
+	admin.Post("/", s.AdminHandler.AddAdmin)
+	admin.Delete("/:account", s.AdminHandler.RemoveAdmin)
+	admin.Get("/", s.AdminHandler.ListAdmins)
+
 	scrape := admin.Group("/scrape")
 	scrape.Post("/course/start", s.ScrapeJobHandler.CreateScrapeJob)
 	scrape.Get("/course/status/:id", s.ScrapeJobHandler.GetScrapeJobByID)
