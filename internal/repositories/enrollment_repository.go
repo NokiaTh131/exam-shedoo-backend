@@ -26,12 +26,6 @@ func (r *EnrollmentRepository) BulkInsert(enrollments []models.Enrollment) error
 	}).Create(&enrollments).Error
 }
 
-func (r *EnrollmentRepository) DeleteByID(id uint) error {
-	// hard delete Unscoped
-	err := r.DB.Unscoped().Delete(&models.Enrollment{}, id).Error
-	return err
-}
-
 func (r *EnrollmentRepository) GetEnrollmentsByStudent(studentCode string) ([]dto.EnrollmentResponse, error) {
 	var enrollments []models.Enrollment
 	err := r.DB.Preload("Course").Where("student_code = ?", studentCode).Find(&enrollments).Error

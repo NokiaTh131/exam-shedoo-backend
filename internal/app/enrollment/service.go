@@ -37,10 +37,6 @@ func (s *EnrollmentService) ImportEnrollments(enrollments []models.Enrollment) e
 	return s.repo.BulkInsert(enrollments)
 }
 
-func (s *EnrollmentService) DeleteEnrolledByID(id uint) error {
-	return s.repo.DeleteByID(id)
-}
-
 func (s *EnrollmentService) GetEnrollmentsByStudent(studentCode string) ([]dto.EnrollmentResponse, error) {
 	return s.repo.GetEnrollmentsByStudent(studentCode)
 }

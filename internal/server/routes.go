@@ -28,10 +28,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// === Admin routes ===
 	admin := s.App.Group("/admin", middlewares.RequireRoles("admin"))
 
+	admin.Get("/", s.AdminHandler.ListAdmins)
 	admin.Post("/", s.AdminHandler.AddAdmin)
 	admin.Delete("/data/all", s.AdminHandler.DeleteAllData)
 	admin.Delete("/:account", s.AdminHandler.RemoveAdmin)
-	admin.Get("/", s.AdminHandler.ListAdmins)
+	admin.Post("/exampdf", s.CourseExamHandler.UploadPDF)
 
 	scrape := admin.Group("/scrape")
 	scrape.Post("/course/start", s.ScrapeJobHandler.CreateScrapeJob)
@@ -41,7 +42,6 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	enroll := admin.Group("/enrollments")
 	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
-	enroll.Delete("/:id", s.EnrollmentHandler.DeleteByID)
 
 	// === Student routes ===
 	student := s.App.Group("/students", middlewares.RequireRoles("student"))
@@ -52,12 +52,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	professor := s.App.Group("/professors", middlewares.RequireRoles("professor", "admin"))
 
 	exam := professor.Group("/course_exams")
-	exam.Post("/examdate", s.CourseExamHandler.CreateExam)
-	exam.Put("/:id", s.CourseExamHandler.UpdateExam)
+	exam.Post("/examdate", s.CourseExamHandler.CreateExam) 
+	exam.Put("/:id", s.CourseExamHandler.UpdateExam) 
 	exam.Get("/report/:courseId", s.CourseExamHandler.GetExamReport)
 
 	course := professor.Group("/courses")
-	course.Get("/", middlewares.ProfessorOwnsResource(), s.CourseHandler.GetCoursesByLecturer)
+	course.Get("/", middlewares.ProfessorOwnsResource(), s.CourseHandler.GetCoursesByLecturer) 
 	course.Get("/enrolled_students/:course_id", s.CourseHandler.GetEnrolledStudents)
-	exam.Post("/exampdf", s.CourseExamHandler.UploadPDF)
 }

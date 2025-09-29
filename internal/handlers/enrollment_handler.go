@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"strconv"
 
 	"shedoo-backend/internal/app/enrollment"
 
@@ -45,29 +44,6 @@ func (h *EnrollmentHandler) UploadEnrollments(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"message": fmt.Sprintf("Imported %d records", len(enrollments)),
-	})
-}
-
-// DELETE /enrollments/:id
-func (h *EnrollmentHandler) DeleteByID(c *fiber.Ctx) error {
-	idStr := c.Params("id")
-	id, err := strconv.ParseUint(idStr, 10, 32)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "invalid id",
-		})
-	}
-
-	err = h.enrollmentService.DeleteEnrolledByID(uint(id))
-	if err != nil {
-		// อาจเช็คว่า err เป็น “not found” หรืออย่างอื่น
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
-	}
-
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "deleted successfully",
 	})
 }
 
