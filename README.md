@@ -397,7 +397,9 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
             ]
         }
     ]
-}```
+}
+```
+
 
 ## Error Responses
 
@@ -407,6 +409,29 @@ All endpoints may return error responses in this format:
   "error": "Error description here"
 }
 ```
+
+## Installation
+
+### Docker
+
+```bash
+docker build -t course-scraper web-scraper/course_scraper.py
+```
+
+```bash
+docker build -t exam-scraper web-scraper/exam_scraper.py
+```
+
+```bash
+docker-compose up -d
+```
+
+Then **run** the application
+```bash
+make run
+```
+
+### Manual
 
 Common HTTP status codes:
 - `200` - Success
