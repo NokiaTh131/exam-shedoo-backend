@@ -48,3 +48,11 @@ func (h *AdminHandler) ListAdmins(c *fiber.Ctx) error {
 	}
 	return c.JSON(admins)
 }
+
+func (h *AdminHandler) DeleteAllData(c *fiber.Ctx) error {
+	err := h.RoleService.AdminRepo.DeleteAll()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to delete all data"})
+	}
+	return c.JSON(fiber.Map{"ok": true})
+}

@@ -40,3 +40,17 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 	})
 	return c.JSON(fiber.Map{"ok": true})
 }
+
+func (h *AuthHandler) SignOut(c *fiber.Ctx) error {
+	c.Cookie(&fiber.Cookie{
+		Name:     "shedoo-cmu-entraid-token",
+		Value:    "",
+		Path:     "/",
+		Domain:   h.cookieDomain,
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   h.isProd,
+		SameSite: "Lax",
+	})
+	return c.JSON(fiber.Map{"ok": true})
+}

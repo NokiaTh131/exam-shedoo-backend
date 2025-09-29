@@ -22,8 +22,8 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	s.App.Use(middlewares.AuthRequired(s.RoleService))
 
-	// profile all authenticated users
 	auth.Get("/profile", s.UserHandler.GetProfile)
+	auth.Post("/signout", s.AuthHandler.SignOut)
 
 	// === Admin routes ===
 	admin := s.App.Group("/admin", middlewares.RequireRoles("admin"))
@@ -31,6 +31,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	admin.Post("/", s.AdminHandler.AddAdmin)
 	admin.Delete("/:account", s.AdminHandler.RemoveAdmin)
 	admin.Get("/", s.AdminHandler.ListAdmins)
+	admin.Delete("/all", s.AdminHandler.DeleteAllData)
 
 	scrape := admin.Group("/scrape")
 	scrape.Post("/course/start", s.ScrapeJobHandler.CreateScrapeJob)

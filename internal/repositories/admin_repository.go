@@ -37,17 +37,23 @@ func (r *AdminRepository) ListAdmins() ([]models.Admin, error) {
 	return admins, err
 }
 
-func ClearAllData(db *gorm.DB) error {
-	if err := db.Exec("DELETE FROM enrollments").Error; err != nil {
+func (r *AdminRepository) DeleteAll() error {
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Enrollment{}).Error; err != nil {
 		return err
 	}
-	if err := db.Exec("DELETE FROM course_exams").Error; err != nil {
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.CourseExam{}).Error; err != nil {
 		return err
 	}
-	if err := db.Exec("DELETE FROM courses").Error; err != nil {
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Course{}).Error; err != nil {
 		return err
 	}
-	if err := db.Exec("DELETE FROM admins").Error; err != nil {
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.ScrapeCourseJob{}).Error; err != nil {
+		return err
+	}
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.ScrapeExamJob{}).Error; err != nil {
+		return err
+	}
+	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Admin{}).Error; err != nil {
 		return err
 	}
 
