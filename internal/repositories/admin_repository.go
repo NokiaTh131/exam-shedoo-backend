@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"fmt"
+
 	"shedoo-backend/internal/models"
 
 	"gorm.io/gorm"
@@ -39,22 +41,27 @@ func (r *AdminRepository) ListAdmins() ([]models.Admin, error) {
 
 func (r *AdminRepository) DeleteAll() error {
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Enrollment{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete enrollments: %w", err)
 	}
+
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.CourseExam{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete course exams: %w", err)
 	}
+
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Course{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete courses: %w", err)
 	}
+
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.ScrapeCourseJob{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete scrape course jobs: %w", err)
 	}
+
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.ScrapeExamJob{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete scrape exam jobs: %w", err)
 	}
+
 	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Admin{}).Error; err != nil {
-		return err
+		return fmt.Errorf("failed to delete admins: %w", err)
 	}
 
 	return nil

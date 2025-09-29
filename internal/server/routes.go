@@ -29,9 +29,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	admin := s.App.Group("/admin", middlewares.RequireRoles("admin"))
 
 	admin.Post("/", s.AdminHandler.AddAdmin)
+	admin.Delete("/data/all", s.AdminHandler.DeleteAllData)
 	admin.Delete("/:account", s.AdminHandler.RemoveAdmin)
 	admin.Get("/", s.AdminHandler.ListAdmins)
-	admin.Delete("/all", s.AdminHandler.DeleteAllData)
 
 	scrape := admin.Group("/scrape")
 	scrape.Post("/course/start", s.ScrapeJobHandler.CreateScrapeJob)
