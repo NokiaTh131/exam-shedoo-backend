@@ -44,7 +44,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
 
 	// === Student routes ===
-	student := s.App.Group("/students", middlewares.RequireRoles("student"))
+	student := s.App.Group("/students", middlewares.RequireRoles("student", "admin"))
 	student.Get("/enrollments/:studentCode", middlewares.StudentOwnsResource(), s.EnrollmentHandler.GetEnrollmentsByStudent)
 	student.Get("/exams/:studentCode", middlewares.StudentOwnsResource(), s.CourseExamHandler.GetExams)
 
@@ -52,11 +52,11 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	professor := s.App.Group("/professors", middlewares.RequireRoles("professor", "admin"))
 
 	exam := professor.Group("/course_exams")
-	exam.Post("/examdate", s.CourseExamHandler.CreateExam) 
-	exam.Put("/:id", s.CourseExamHandler.UpdateExam) 
+	exam.Post("/examdate", s.CourseExamHandler.CreateExam)
+	exam.Put("/:id", s.CourseExamHandler.UpdateExam)
 	exam.Get("/report/:courseId", s.CourseExamHandler.GetExamReport)
 
 	course := professor.Group("/courses")
-	course.Get("/", middlewares.ProfessorOwnsResource(), s.CourseHandler.GetCoursesByLecturer) 
+	course.Get("/", middlewares.ProfessorOwnsResource(), s.CourseHandler.GetCoursesByLecturer)
 	course.Get("/enrolled_students/:course_id", s.CourseHandler.GetEnrolledStudents)
 }
