@@ -49,8 +49,10 @@ class CourseScraperPool:
                         course_code=code, title=cols[2].get_text(strip=True),
                         lec_section=cols[3].get_text(strip=True) or None,
                         lab_section=cols[4].get_text(strip=True) or None,
-                        credit=float(cols[5].get_text(strip=True) or 0),
-                        days=d, start_time=(times[i].split("-")[0] if i < len(times) and "-" in times[i] else None),
+                        lec_credit=float(cols[5].get_text(strip=True) or 0),
+                        lab_credit=float(cols[6].get_text(strip=True) or 0),
+                        days=d,
+                        start_time=(times[i].split("-")[0] if i < len(times) and "-" in times[i] else None),
                         end_time=(times[i].split("-")[1] if i < len(times) and "-" in times[i] else None),
                         room=rooms[i] if i < len(rooms) else None,
                         lecturers=json.dumps(lecs) if lecs else None
@@ -64,10 +66,16 @@ class CourseScraperPool:
 def insert_courses(conn, courses):
     with conn.cursor() as cur:
         cur.executemany("""
-            INSERT INTO courses (course_code,title,lab_section,lec_section,room,credit,
-                                 days,start_time,end_time,lecturers)
-            VALUES (%(course_code)s,%(title)s,%(lab_section)s,%(lec_section)s,%(room)s,
-                    %(credit)s,%(days)s,%(start_time)s,%(end_time)s,%(lecturers)s)
+            INSERT INTO courses (
+                course_code, title, lab_section, lec_section, room,
+                lec_credit, lab_credit,
+                days, start_time, end_time, lecturers
+            )
+            VALUES (
+                %(course_code)s, %(title)s, %(lab_section)s, %(lec_section)s, %(room)s,
+                %(lec_credit)s, %(lab_credit)s,
+                %(days)s, %(start_time)s, %(end_time)s, %(lecturers)s
+            )
             ON CONFLICT DO NOTHING;
         """, courses)
     conn.commit()

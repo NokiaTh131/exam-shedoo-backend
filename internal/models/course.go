@@ -9,7 +9,8 @@ type Course struct {
 	LabSection *string                     `gorm:"column:lab_section;uniqueIndex:idx_course"`
 	LecSection *string                     `gorm:"column:lec_section;uniqueIndex:idx_course"`
 	Room       *string                     `gorm:"column:room"`
-	Credit     *float32                    `gorm:"column:credit"`
+	LecCredit  *float32                    `gorm:"column:lec_credit"`
+	LabCredit  *float32                    `gorm:"column:lab_credit"`
 	Days       *string                     `gorm:"column:days"`
 	StartTime  *string                     `gorm:"column:start_time"`
 	EndTime    *string                     `gorm:"column:end_time"`

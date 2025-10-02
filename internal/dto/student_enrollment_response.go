@@ -10,7 +10,8 @@ type EnrollmentResponse struct {
 	LecSection  string             `json:"lec_section"`
 	CourseName  string             `json:"course_name"`
 	LabSection  string             `json:"lab_section"`
-	Credit      float32            `json:"credit"`
+	LecCredit   float32            `json:"lec_credit"`
+	LabCredit   float32            `json:"lab_credit"`
 	Instructors []LecturerResponse `json:"instructors"`
 	Room        string             `json:"room"`
 	Days        string             `json:"days"`
