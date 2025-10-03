@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"time"
+
 	"shedoo-backend/internal/app/auth"
 
 	"github.com/gofiber/fiber/v2"
@@ -33,7 +35,8 @@ func (h *AuthHandler) SignIn(c *fiber.Ctx) error {
 		Value:    token,
 		Path:     "/",
 		Domain:   h.cookieDomain,
-		MaxAge:   86400,
+		MaxAge:   61 * 60 * 24 * 7,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
 		HTTPOnly: true,
 		Secure:   h.isProd,
 		SameSite: "Lax",
