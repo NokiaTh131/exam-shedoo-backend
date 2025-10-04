@@ -4,6 +4,7 @@ type ProfessorCourseResponse struct {
 	CourseID         uint    `json:"course_id"`
 	CourseCode       string  `json:"course_code"`
 	CourseName       string  `json:"course_name"`
+	ExamID           uint    `json:"exam_id"`
 	LecSection       string  `json:"lec_section"`
 	LabSection       string  `json:"lab_section"`
 	MidtermDate      *string `json:"midterm_date"`

@@ -24,6 +24,7 @@ func (r *CourseRepository) GetCoursesByLecturer(lecturerName string) ([]dto.Prof
 		    c.id AS course_id,
 		    c.course_code,
 		    c.title AS course_name,
+				ce.id AS exam_id,
 		    COALESCE(c.lec_section, '000') AS lec_section,
 		    COALESCE(c.lab_section, '000') AS lab_section,
 		    ce.midterm_exam_date AS midterm_date,
