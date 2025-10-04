@@ -21,7 +21,7 @@ def parse_thai_date_raw(day, month_abbr, year):
     month_eng = thai_to_eng_month.get(month_abbr.strip())
     if not month_eng:
         return None
-    return f"{month_eng} {int(day):02d}"
+    return f"{month_eng}  {int(day):02d}"
 
 def parse_pdf_and_insert(pdf_path, db_config, exam_type="MIDTERM"):
     results = []

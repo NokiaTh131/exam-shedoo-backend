@@ -14,14 +14,13 @@ type CourseExamHandler struct {
 	courseexamService *courseexam.CourseExamService
 }
 
-// body update
 type UpdateCourseExamRequest struct {
-	MidtermExamDate      *string `json:"midterm_exam_date,omitempty"`
-	FinalExamDate        *string `json:"final_exam_date,omitempty"`
-	MidtermExamStartTime *string `json:"midterm_exam_start_time,omitempty"`
-	FinalExamStartTime   *string `json:"final_exam_start_time,omitempty"`
-	MidtermExamEndTime   *string `json:"midterm_exam_end_time,omitempty"`
-	FinalExamEndTime     *string `json:"final_exam_end_time,omitempty"`
+	MidtermExamDate      *string `json:"midtermExamDate,omitempty"`
+	FinalExamDate        *string `json:"finalExamDate,omitempty"`
+	MidtermExamStartTime *string `json:"midtermExamStartTime,omitempty"`
+	FinalExamStartTime   *string `json:"finalExamStartTime,omitempty"`
+	MidtermExamEndTime   *string `json:"midtermExamEndTime,omitempty"`
+	FinalExamEndTime     *string `json:"finalExamEndTime,omitempty"`
 }
 
 func NewCourseExamHandler(courseexamService *courseexam.CourseExamService) *CourseExamHandler {
@@ -110,38 +109,39 @@ func (h *CourseExamHandler) GetExamReport(c *fiber.Ctx) error {
 }
 
 func (h *CourseExamHandler) UploadPDF(c *fiber.Ctx) error {
-    // Get uploaded file
-    pdfFile, err := c.FormFile("pdf")
-    if err != nil {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "PDF file is required",
-        })
-    }
+	// Get uploaded file
+	pdfFile, err := c.FormFile("pdf")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "PDF file is required",
+		})
+	}
 
-    // Get exam_type
-    examType := c.FormValue("exam_type")
-    if examType != "MIDTERM" && examType != "FINAL" {
-        return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-            "error": "exam_type must be MIDTERM or FINAL",
-        })
-    }
+	// Get exam_type
+	examType := c.FormValue("exam_type")
+	if examType != "MIDTERM" && examType != "FINAL" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "exam_type must be MIDTERM or FINAL",
+		})
+	}
 
-    // Save uploaded file temporarily
-    tempPath := fmt.Sprintf("./tmp/%s", pdfFile.Filename)
-    if err := c.SaveFile(pdfFile, tempPath); err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": "Failed to save PDF",
-        })
-    }
+	// Save uploaded file temporarily
+	tempPath := fmt.Sprintf("./tmp/%s", pdfFile.Filename)
+	if err := c.SaveFile(pdfFile, tempPath); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to save PDF",
+		})
+	}
 
-    // Call service
-    if err := h.courseexamService.ParseAndInsertPDF(tempPath, examType); err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-            "error": err.Error(),
-        })
-    }
+	// Call service
+	if err := h.courseexamService.ParseAndInsertPDF(tempPath, examType); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
-    return c.Status(fiber.StatusOK).JSON(fiber.Map{
-        "message": "PDF processed successfully",
-    })
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "PDF processed successfully",
+	})
 }
+
