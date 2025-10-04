@@ -4,7 +4,7 @@ type ExamReport struct {
 	CourseID         int     `json:"course_id"`
 	CourseCode       string  `json:"course_code"`
 	CourseName       string  `json:"course_name"`
-	StudentCount     int     `json:"student_count"`
+	StudentCode      string  `json:"student_code"`
 	MidtermDate      *string `json:"midterm_date"`
 	MidtermStartTime *string `json:"midterm_start_time"`
 	MidtermEndTime   *string `json:"midterm_end_time"`
@@ -28,10 +28,14 @@ type TermResponse struct {
 }
 
 type CourseReponse struct {
-	CourseID      int    `json:"course_id"`
-	CourseCode    string `json:"course_code"`
-	CourseName    string `json:"course_name"`
-	LecSection    string `json:"lec_section"`
-	LabSection    string `json:"lab_section"`
-	NumOfStudents int    `json:"student_count"`
+	CourseID        int                `json:"course_id"`
+	CourseCode      string             `json:"course_code"`
+	CourseName      string             `json:"course_name"`
+	LecSection      string             `json:"lec_section"`
+	LabSection      string             `json:"lab_section"`
+	StudentResponse *[]StudentResponse `json:"students"`
+}
+
+type StudentResponse struct {
+	StudentCode string `json:"student_code"`
 }

@@ -84,18 +84,18 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 	var rows []dto.ExamReport
 	err := r.db.Raw(`
 		SELECT
-				c.id                                  AS course_id,
-				c.course_code,
-				c.title                               AS course_name,
-				COUNT(DISTINCT e.student_code)        AS student_count,
-				ce.midterm_exam_date                  AS midterm_date,
-				ce.midterm_exam_start_time            AS midterm_start_time,
-				ce.midterm_exam_end_time              AS midterm_end_time,
-				ce.final_exam_date                    AS final_date,
-				ce.final_exam_start_time              AS final_start_time,
-				ce.final_exam_end_time                AS final_end_time,
-				c.lec_section,
-				c.lab_section
+			c.id                                  AS course_id,
+			c.course_code,
+			c.title                               AS course_name,
+			e.student_code                        AS student_code,
+			ce.midterm_exam_date                  AS midterm_date,
+			ce.midterm_exam_start_time            AS midterm_start_time,
+			ce.midterm_exam_end_time              AS midterm_end_time,
+			ce.final_exam_date                    AS final_date,
+			ce.final_exam_start_time              AS final_start_time,
+			ce.final_exam_end_time                AS final_end_time,
+			c.lec_section,
+			c.lab_section
 		FROM enrollments e
 		JOIN courses c ON e.course_id = c.id
 		LEFT JOIN LATERAL (
@@ -122,27 +122,29 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 			FROM enrollments
 			WHERE course_id = ?
 		)
-		GROUP BY
-			c.id, c.course_code, c.title,
-			ce.midterm_exam_date, ce.midterm_exam_start_time, ce.midterm_exam_end_time,
-			ce.final_exam_date, ce.final_exam_start_time, ce.final_exam_end_time,
-			c.lec_section, c.lab_section
-		ORDER BY student_count DESC
+		ORDER BY c.id ASC
 	`, courseId).Scan(&rows).Error
+
 	if err != nil || len(rows) == 0 {
 		return dto.ProfessorReportCourseResponse{}, err
 	}
+
 	midtermGroups := map[string]*dto.TermResponse{}
 	finalGroups := map[string]*dto.TermResponse{}
+
 	for _, row := range rows {
+		student := dto.StudentResponse{StudentCode: row.StudentCode}
+
 		course := dto.CourseReponse{
-			CourseID:      row.CourseID,
-			CourseCode:    row.CourseCode,
-			CourseName:    row.CourseName,
-			LecSection:    derefString(row.LecSection),
-			LabSection:    derefString(row.LabSection),
-			NumOfStudents: row.StudentCount,
+			CourseID:        row.CourseID,
+			CourseCode:      row.CourseCode,
+			CourseName:      row.CourseName,
+			LecSection:      derefString(row.LecSection),
+			LabSection:      derefString(row.LabSection),
+			StudentResponse: &[]dto.StudentResponse{student},
 		}
+
+		// Handle Midterm
 		if derefString(row.MidtermDate) != "" {
 			key := derefString(row.MidtermDate) + derefString(row.MidtermStartTime) + derefString(row.MidtermEndTime)
 			if _, exists := midtermGroups[key]; !exists {
@@ -153,8 +155,32 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 					Courses: []dto.CourseReponse{},
 				}
 			}
-			midtermGroups[key].Courses = append(midtermGroups[key].Courses, course)
+
+			// Check if course exists
+			foundCourse := false
+			for i, c := range midtermGroups[key].Courses {
+				if c.CourseID == course.CourseID && c.LecSection == course.LecSection && c.LabSection == course.LabSection {
+					// Check for duplicate student
+					foundStudent := false
+					for _, s := range *midtermGroups[key].Courses[i].StudentResponse {
+						if s.StudentCode == student.StudentCode {
+							foundStudent = true
+							break
+						}
+					}
+					if !foundStudent {
+						*midtermGroups[key].Courses[i].StudentResponse = append(*midtermGroups[key].Courses[i].StudentResponse, student)
+					}
+					foundCourse = true
+					break
+				}
+			}
+			if !foundCourse {
+				midtermGroups[key].Courses = append(midtermGroups[key].Courses, course)
+			}
 		}
+
+		// Handle Final
 		if derefString(row.FinalDate) != "" {
 			key := derefString(row.FinalDate) + derefString(row.FinalStartTime) + derefString(row.FinalEndTime)
 			if _, exists := finalGroups[key]; !exists {
@@ -165,9 +191,30 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 					Courses: []dto.CourseReponse{},
 				}
 			}
-			finalGroups[key].Courses = append(finalGroups[key].Courses, course)
+
+			foundCourse := false
+			for i, c := range finalGroups[key].Courses {
+				if c.CourseID == course.CourseID && c.LecSection == course.LecSection && c.LabSection == course.LabSection {
+					foundStudent := false
+					for _, s := range *finalGroups[key].Courses[i].StudentResponse {
+						if s.StudentCode == student.StudentCode {
+							foundStudent = true
+							break
+						}
+					}
+					if !foundStudent {
+						*finalGroups[key].Courses[i].StudentResponse = append(*finalGroups[key].Courses[i].StudentResponse, student)
+					}
+					foundCourse = true
+					break
+				}
+			}
+			if !foundCourse {
+				finalGroups[key].Courses = append(finalGroups[key].Courses, course)
+			}
 		}
 	}
+
 	midtermResp := []dto.TermResponse{}
 	for _, v := range midtermGroups {
 		midtermResp = append(midtermResp, *v)
@@ -176,10 +223,12 @@ func (r *CourseExamRepository) GetExamReport(courseId int) (dto.ProfessorReportC
 	for _, v := range finalGroups {
 		finalResp = append(finalResp, *v)
 	}
+
 	response := &dto.ProfessorReportCourseResponse{
 		MidtermResponse: &midtermResp,
 		FinalResponse:   &finalResp,
 	}
+
 	return *response, nil
 }
 
@@ -192,4 +241,3 @@ func (r *CourseExamRepository) ParseAndInsert(pdfPath string, examType string) e
 	fmt.Println(string(output))
 	return nil
 }
-
