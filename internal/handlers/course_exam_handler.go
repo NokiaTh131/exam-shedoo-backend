@@ -110,7 +110,7 @@ func (h *CourseExamHandler) GetExamReport(c *fiber.Ctx) error {
 
 func (h *CourseExamHandler) UploadPDF(c *fiber.Ctx) error {
 	// Get uploaded file
-	pdfFile, err := c.FormFile("pdf")
+	pdfFile, err := c.FormFile("file")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "PDF file is required",
@@ -144,4 +144,3 @@ func (h *CourseExamHandler) UploadPDF(c *fiber.Ctx) error {
 		"message": "PDF processed successfully",
 	})
 }
-

@@ -12,9 +12,11 @@ course_pattern = re.compile(r'\b(\d{6})\b')
 
 # Map Thai months to English abbreviations for consistency
 thai_to_eng_month = {
-    'ม.ค.':'JAN','ก.พ.':'FEB','มี.ค.':'MAR','เม.ย.':'APR','พ.ค.':'MAY','มิ.ย.':'JUN',
-    'ก.ค.':'JUL','ส.ค.':'AUG','ก.ย.':'SEP','ต.ค.':'OCT','พ.ย.':'NOV','ธ.ค.':'DEC'
+    'ม.ค.': 'JAN', 'ก.พ.': 'FEB', 'มี.ค.': 'MAR', 'เม.ย.': 'APR',
+    'พ.ค.': 'MAY', 'มิ.ย.': 'JUN', 'ก.ค.': 'JUL', 'ส.ค.': 'AUG',
+    'ก.ย.': 'SEP', 'ต.ค.': 'OCT', 'พ.ย.': 'NOV', 'ธ.ค.': 'DEC'
 }
+
 
 def parse_thai_date_raw(day, month_abbr, year):
     """Return date in format like 'OCT 20'"""
@@ -22,6 +24,7 @@ def parse_thai_date_raw(day, month_abbr, year):
     if not month_eng:
         return None
     return f"{month_eng}  {int(day):02d}"
+
 
 def parse_pdf_and_insert(pdf_path, db_config, exam_type="MIDTERM"):
     results = []
@@ -35,15 +38,18 @@ def parse_pdf_and_insert(pdf_path, db_config, exam_type="MIDTERM"):
             for line in text.splitlines():
                 line = line.replace("\xa0", " ").replace("\u202f", " ").strip()
 
+                # Match Thai date (e.g., 20 ต.ค. 2567)
                 dmatch = thai_date_pattern.search(line)
                 if dmatch:
                     day, month_abbr, year = dmatch.groups()
                     current_date = parse_thai_date_raw(day, month_abbr, year)
 
+                # Match time (e.g., 09:00-12:00)
                 tmatch = time_pattern.search(line)
                 if tmatch:
                     current_time = tmatch.group(1)
 
+                # Match course code (6 digits)
                 cmatch = course_pattern.search(line)
                 if cmatch:
                     course_code = cmatch.group(1)
@@ -59,6 +65,9 @@ def parse_pdf_and_insert(pdf_path, db_config, exam_type="MIDTERM"):
     )
     cursor = conn.cursor()
 
+    skipped = 0
+    inserted = 0
+
     for date, time_str, course_code in results:
         if not date or not time_str:
             continue
@@ -67,39 +76,62 @@ def parse_pdf_and_insert(pdf_path, db_config, exam_type="MIDTERM"):
         start_time = start_time.replace(":", "").strip()
         end_time = end_time.replace(":", "").strip()
 
+        # --- Get course_id from courses table ---
+        cursor.execute("SELECT id FROM courses WHERE course_code=%s LIMIT 1", (course_code,))
+        result = cursor.fetchone()
+        if not result:
+            print(f"Skipping course {course_code} (not found in courses table)")
+            skipped += 1
+            continue
+
+        course_id = result[0]
+
+        # --- Insert or update depending on exam type ---
         if exam_type.upper() == "MIDTERM":
             cursor.execute("""
-                INSERT INTO course_exams (
+                INSERT INTO course_exams(
+                    course_id,
                     course_code,
+                    lec_section,
+                    lab_section,
                     midterm_exam_date,
                     midterm_exam_start_time,
                     midterm_exam_end_time
-                ) VALUES (%s, %s, %s, %s)
+                )
+                VALUES (%s, %s, '000', '000', %s, %s, %s)
                 ON CONFLICT (course_code, lec_section, lab_section)
                 DO UPDATE SET
                     midterm_exam_date = EXCLUDED.midterm_exam_date,
                     midterm_exam_start_time = EXCLUDED.midterm_exam_start_time,
                     midterm_exam_end_time = EXCLUDED.midterm_exam_end_time;
-            """, (course_code, date, start_time, end_time))
+            """, (course_id, course_code, date, start_time, end_time))
         else:  # FINAL
             cursor.execute("""
-                INSERT INTO course_exams (
+                INSERT INTO course_exams(
+                    course_id,
                     course_code,
+                    lec_section,
+                    lab_section,
                     final_exam_date,
                     final_exam_start_time,
                     final_exam_end_time
-                ) VALUES (%s, %s, %s, %s)
+                )
+                VALUES (%s, %s, '000', '000', %s, %s, %s)
                 ON CONFLICT (course_code, lec_section, lab_section)
                 DO UPDATE SET
                     final_exam_date = EXCLUDED.final_exam_date,
                     final_exam_start_time = EXCLUDED.final_exam_start_time,
                     final_exam_end_time = EXCLUDED.final_exam_end_time;
-            """, (course_code, date, start_time, end_time))
+            """, (course_id, course_code, date, start_time, end_time))
+
+        inserted += 1
 
     conn.commit()
     cursor.close()
     conn.close()
-    print(f"Data from {pdf_path} inserted into PostgreSQL successfully.")
+
+    print(f"Data from {pdf_path} inserted successfully.")
+    print(f"Inserted: {inserted}, Skipped (missing course): {skipped}")
 
 
 if __name__ == "__main__":
@@ -108,10 +140,8 @@ if __name__ == "__main__":
     parser.add_argument("--exam_type", required=True, choices=["MIDTERM", "FINAL"], help="Type of exam")
     args = parser.parse_args()
 
-    # โหลดค่า .env
     load_dotenv()
 
-    # DB config อ่านจาก .env
     db_config = {
         "host": os.getenv("POSTGRES_HOST"),
         "port": int(os.getenv("POSTGRES_PORT", 5432)),
