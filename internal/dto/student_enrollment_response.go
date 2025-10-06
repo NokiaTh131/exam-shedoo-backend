@@ -16,5 +16,7 @@ type EnrollmentResponse struct {
 	Room        string             `json:"room"`
 	Days        string             `json:"days"`
 	StartTime   string             `json:"start_time"`
+	Semester    string             `json:"semester"`
+	Year        string             `json:"year"`
 	EndTime     string             `json:"end_time"`
 }

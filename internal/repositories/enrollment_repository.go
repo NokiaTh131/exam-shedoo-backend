@@ -51,6 +51,8 @@ func (r *EnrollmentRepository) GetEnrollmentsByStudent(studentCode string) ([]dt
 			Instructors: instructors,
 			Room:        derefString(e.Course.Room),
 			Days:        derefString(e.Course.Days),
+			Semester:    e.Semester,
+			Year:        e.Year,
 			StartTime:   derefString(e.Course.StartTime),
 			EndTime:     derefString(e.Course.EndTime),
 		}
