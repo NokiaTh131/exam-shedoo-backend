@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"bufio"
+	"encoding/json"
+	"fmt"
 	"strconv"
+	"time"
 
 	scrapejobs "shedoo-backend/internal/app/scrape_jobs"
 	"shedoo-backend/internal/models"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/valyala/fasthttp"
 )
 
 type ScrapeJobHandler struct {
@@ -27,17 +32,46 @@ func (h *ScrapeJobHandler) GetScrapeJobByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid job ID",
 		})
 	}
-	job, err := h.scrapeJobService.GetCourseScrapeJobByID(uint(idInt))
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"error": "Course scrape job not found",
-		})
-	}
-	return c.JSON(job)
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("Transfer-Encoding", "chunked")
+
+	c.Status(fiber.StatusOK).Context().SetBodyStreamWriter(fasthttp.StreamWriter(func(w *bufio.Writer) {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			job, err := h.scrapeJobService.GetCourseScrapeJobByID(uint(idInt))
+			if err != nil {
+				fmt.Fprintf(w, "event: error\ndata: %s\n\n", "Job not found")
+				w.Flush()
+				return
+			}
+
+			data, _ := json.Marshal(job)
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			err = w.Flush()
+			if err != nil {
+				return
+			}
+
+			if job.Status == "completed" || job.Status == "failed" {
+				fmt.Fprintf(w, "event: done\ndata: %s\n\n", data)
+				w.Flush()
+				return
+			}
+
+			time.Sleep(5 * time.Second)
+		}
+	}))
+
+	return nil
 }
 
 func (h *ScrapeJobHandler) CreateScrapeJob(c *fiber.Ctx) error {
@@ -79,15 +113,46 @@ func (h *ScrapeJobHandler) GetExamScrapeJobByID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid job ID",
 		})
 	}
-	job, err := h.scrapeJobService.GetExamScrapeJobByID(uint(idInt))
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{
-			"error": "Exam scrape job not found",
-		})
-	}
-	return c.JSON(job)
+
+	c.Set("Content-Type", "text/event-stream")
+	c.Set("Cache-Control", "no-cache")
+	c.Set("Connection", "keep-alive")
+	c.Set("Transfer-Encoding", "chunked")
+
+	c.Status(fiber.StatusOK).Context().SetBodyStreamWriter(fasthttp.StreamWriter(func(w *bufio.Writer) {
+		ticker := time.NewTicker(1 * time.Second)
+		defer ticker.Stop()
+
+		for {
+			job, err := h.scrapeJobService.GetExamScrapeJobByID(uint(idInt))
+			if err != nil {
+				fmt.Fprintf(w, "event: error\ndata: %s\n\n", "Job not found")
+				w.Flush()
+				return
+			}
+
+			data, _ := json.Marshal(job)
+
+			fmt.Fprintf(w, "data: %s\n\n", data)
+			err = w.Flush()
+			if err != nil {
+				fmt.Printf("SSE flush error: %v — closing connection.\n", err)
+				return
+			}
+
+			if job.Status == "completed" || job.Status == "failed" {
+				fmt.Fprintf(w, "event: done\ndata: %s\n\n", data)
+				w.Flush()
+				return
+			}
+
+			time.Sleep(2 * time.Second)
+		}
+	}))
+
+	return nil
 }
