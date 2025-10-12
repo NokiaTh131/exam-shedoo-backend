@@ -1,0 +1,61 @@
+name: schedoo-backend
+services:
+  backend:
+    image: shedoo-backend:latest
+    container_name: shedoo-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT}:8080"
+    depends_on:
+      - psql_prod
+      - redis_prod
+    environment:
+      PORT: ${PORT}
+      APP_ENV: ${APP_ENV}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_DATABASE: ${POSTGRES_DATABASE}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_ADDR: ${REDIS_ADDR}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      CMU_ENTRAID_GET_TOKEN_URL: ${CMU_ENTRAID_GET_TOKEN_URL}
+      CMU_ENTRAID_CLIENT_ID: ${CMU_ENTRAID_CLIENT_ID}
+      CMU_ENTRAID_CLIENT_SECRET: ${CMU_ENTRAID_CLIENT_SECRET}
+      CMU_ENTRAID_REDIRECT_URL: ${CMU_ENTRAID_REDIRECT_URL}
+      SCOPE: ${SCOPE}
+      CMU_ENTRAID_GET_BASIC_INFO: ${CMU_ENTRAID_GET_BASIC_INFO}
+      JWT_SECRET: ${JWT_SECRET}
+      PROD: ${PROD}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN}
+    command: ["./main"]
+
+  psql_prod:
+    image: postgres:latest
+    container_name: shedoo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DATABASE}
+      POSTGRES_USER: ${POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - psql_volume_prod:/var/lib/postgresql/data
+
+  redis_prod:
+    image: redis:alpine
+    container_name: shedoo-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_volume_prod:/data
+
+volumes:
+  psql_volume_prod:
+  redis_volume_prod:
