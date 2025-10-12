@@ -18,7 +18,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	}))
 	// Apply logger middleware
 	s.App.Use(logger.New(logger.Config{
-		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+		Format: "[${ip}]:${port} ${status} - ${method} ${url}\n",
 	}))
 
 	// === Public routes ===
