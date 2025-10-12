@@ -26,8 +26,8 @@ type AuthService struct {
 	repo        *repositories.AuthRepository
 	JwtSecret   string
 	redisClient *redis.Client
-	sessionTTL  time.Duration // how long the server session is kept (e.g., 7 days)
-	jwtTTL      time.Duration // short-lived JWT lifetime (e.g., 15m)
+	sessionTTL  time.Duration
+	jwtTTL      time.Duration
 	issuer      string
 	audience    string
 }
