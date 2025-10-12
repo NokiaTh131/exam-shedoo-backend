@@ -81,6 +81,23 @@ func (h *ScrapeJobHandler) CreateScrapeJob(c *fiber.Ctx) error {
 			"error": "Invalid request body",
 		})
 	}
+	startCodeInt, err := strconv.Atoi(req.Start)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid start code",
+		})
+	}
+	endCodeInt, err := strconv.Atoi(req.End)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Invalid end code",
+		})
+	}
+	if startCodeInt > endCodeInt {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "Start code must be less than end code",
+		})
+	}
 
 	job := models.ScrapeCourseJob{
 		StartCode: req.Start,

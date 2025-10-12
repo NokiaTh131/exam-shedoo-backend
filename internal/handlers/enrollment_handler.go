@@ -55,5 +55,11 @@ func (h *EnrollmentHandler) GetEnrollmentsByStudent(c *fiber.Ctx) error {
 			"error": "Could not get enrollments",
 		})
 	}
+	if enrollments == nil {
+		return c.Status(404).JSON(fiber.Map{
+			"error": "No enrollments found",
+		})
+	}
+
 	return c.JSON(enrollments)
 }

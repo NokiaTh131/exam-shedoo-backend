@@ -53,5 +53,6 @@ func (s *CourseExamService) GetExamReport(courseId int) (dto.ProfessorReportCour
 }
 
 func (s *CourseExamService) ParseAndInsertPDF(pdfPath, examType string) error {
-    return s.repo.ParseAndInsert(pdfPath, examType)
+	return s.repo.ParseAndInsert(pdfPath, examType)
 }
+

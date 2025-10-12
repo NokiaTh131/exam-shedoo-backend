@@ -7,6 +7,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.14.0
 	gorm.io/datatypes v1.2.6
+	gorm.io/driver/sqlite v1.6.0
 )
 
 require (
@@ -20,12 +21,11 @@ require (
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
-	github.com/philhofer/fwd v1.1.3-0.20240916144458-20a13a1f6b7c // indirect
+	github.com/mattn/go-sqlite3 v1.14.22 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
 	github.com/richardlehane/msoleps v1.0.4 // indirect
 	github.com/stretchr/testify v1.11.1 // indirect
 	github.com/tiendc/go-deepcopy v1.6.0 // indirect
-	github.com/tinylib/msgp v1.2.5 // indirect
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
 	golang.org/x/crypto v0.42.0 // indirect
