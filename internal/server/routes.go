@@ -4,6 +4,7 @@ import (
 	"shedoo-backend/internal/middlewares"
 
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
 func (s *FiberServer) RegisterFiberRoutes() {
@@ -15,18 +16,22 @@ func (s *FiberServer) RegisterFiberRoutes() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
+	// Apply logger middleware
+	s.App.Use(logger.New(logger.Config{
+		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
 
 	// === Public routes ===
 	auth := s.App.Group("/auth")
 	auth.Post("/signin", s.AuthHandler.SignIn)
 
-	s.App.Use(middlewares.AuthRequired(s.RoleService))
+	s.App.Use(s.AuthMiddleware.AuthRequired())
 
 	auth.Get("/profile", s.UserHandler.GetProfile)
 	auth.Post("/signout", s.AuthHandler.SignOut)
 
 	// === Admin routes ===
-	admin := s.App.Group("/admin", middlewares.RequireRoles("admin"))
+	admin := s.App.Group("/admin", s.AuthMiddleware.RequireRoles("admin"))
 
 	admin.Get("/", s.AdminHandler.ListAdmins)
 	admin.Post("/", s.AdminHandler.AddAdmin)
@@ -44,12 +49,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	enroll.Post("/upload", s.EnrollmentHandler.UploadEnrollments)
 
 	// === Student routes ===
-	student := s.App.Group("/students", middlewares.RequireRoles("student", "admin"))
+	student := s.App.Group("/students", s.AuthMiddleware.RequireRoles("student", "admin"))
 	student.Get("/enrollments/:studentCode", middlewares.StudentOwnsResource(), s.EnrollmentHandler.GetEnrollmentsByStudent)
 	student.Get("/exams/:studentCode", middlewares.StudentOwnsResource(), s.CourseExamHandler.GetExams)
 
 	// === Professor routes ===
-	professor := s.App.Group("/professors", middlewares.RequireRoles("professor", "admin"))
+	professor := s.App.Group("/professors", s.AuthMiddleware.RequireRoles("professor", "admin"))
 
 	exam := professor.Group("/course_exams")
 	exam.Post("/examdate", s.CourseExamHandler.CreateExam)

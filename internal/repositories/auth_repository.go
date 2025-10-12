@@ -21,8 +21,9 @@ type AuthRepository struct {
 }
 
 type TokenResponse struct {
-	AccessToken string `json:"access_token"`
-	ExpiresIn   int    `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	ExpiresIn    int    `json:"expires_in"`
 }
 
 type CmuEntraIDBasicInfo struct {
@@ -51,7 +52,7 @@ func NewAuthRepository(tokenURL, redirectURL, clientID, clientSecret, scope, bas
 	}
 }
 
-func (r *AuthRepository) ExchangeCode(ctx context.Context, code string) (string, error) {
+func (r *AuthRepository) ExchangeCode(ctx context.Context, code string) (*TokenResponse, error) {
 	form := url.Values{}
 	form.Set("code", code)
 	form.Set("redirect_uri", r.RedirectURL)
@@ -61,29 +62,29 @@ func (r *AuthRepository) ExchangeCode(ctx context.Context, code string) (string,
 
 	req, err := http.NewRequestWithContext(ctx, "POST", r.TokenURL, bytes.NewBufferString(form.Encode()))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	client := http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("token endpoint: %s", res.Status)
+		return nil, fmt.Errorf("token endpoint: %s", res.Status)
 	}
 
 	var tr TokenResponse
 	if err := json.NewDecoder(res.Body).Decode(&tr); err != nil {
-		return "", err
+		return nil, err
 	}
 	if tr.AccessToken == "" {
-		return "", errors.New("empty access token")
+		return nil, errors.New("empty access token")
 	}
-	return tr.AccessToken, nil
+	return &tr, nil
 }
 
 func (r *AuthRepository) GetBasicInfo(ctx context.Context, accessToken string) (*CmuEntraIDBasicInfo, error) {

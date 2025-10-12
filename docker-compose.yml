@@ -35,5 +35,17 @@ services:
       - psql_bp
     restart: unless-stopped
 
+  redis_bp:
+    image: redis:alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    environment:
+      - REDIS_ADDR=${REDIS_ADDR}
+    volumes:
+      - redis_volume_bp:/data
+
 volumes:
   psql_volume_bp:
+  redis_volume_bp:

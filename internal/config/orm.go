@@ -17,7 +17,19 @@ type Service struct {
 
 var dbInstance *Service
 
-func New() *Service {
+type RedisConfig struct {
+	Addr     string
+	Password string
+}
+
+func NewRedis() *RedisConfig {
+	return &RedisConfig{
+		Addr:     os.Getenv("REDIS_ADDR"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+	}
+}
+
+func NewDB() *Service {
 	if dbInstance != nil {
 		return dbInstance
 	}
