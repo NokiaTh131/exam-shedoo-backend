@@ -65,6 +65,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       - psql_prod
+      - backend
     restart: unless-stopped
 
   exam_scraper:
@@ -77,6 +78,7 @@ services:
       POSTGRES_PORT: ${POSTGRES_PORT}
     depends_on:
       - psql_prod
+      - backend
     restart: unless-stopped
 
 volumes:
