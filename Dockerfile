@@ -21,9 +21,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
+RUN mkdir -p /app/tmp && chmod 777 /app/tmp
+
 COPY --from=builder /app/main .
 
 COPY web-scraper/ ./web-scraper/
+
+COPY internal/script/ ./internal/script/
 
 EXPOSE 8080
 
