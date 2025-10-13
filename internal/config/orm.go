@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"shedoo-backend/internal/models"
@@ -39,13 +40,36 @@ func NewDB() *Service {
 	user := os.Getenv("POSTGRES_USERNAME")
 	password := os.Getenv("POSTGRES_PASSWORD")
 	dbname := os.Getenv("POSTGRES_DATABASE")
+	adminAccount := os.Getenv("ADMIN_ACCOUNT")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s "+"password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect to database")
 	}
-	db.AutoMigrate(&models.Course{}, &models.Enrollment{}, &models.ScrapeCourseJob{}, &models.ScrapeExamJob{}, &models.CourseExam{}, &models.Admin{})
+	err = db.AutoMigrate(
+		&models.Course{},
+		&models.Enrollment{},
+		&models.ScrapeCourseJob{},
+		&models.ScrapeExamJob{},
+		&models.CourseExam{},
+		&models.Admin{},
+	)
+	if err != nil {
+		panic("failed to auto migrate models")
+	}
+
+	if adminAccount != "" {
+		admin := models.Admin{Account: adminAccount}
+		if err := db.Where("account = ?", adminAccount).FirstOrCreate(&admin).Error; err != nil {
+			log.Printf("Failed to initialize admin (%s): %v", adminAccount, err)
+		} else {
+			log.Printf("Admin initialized or already exists: %s", adminAccount)
+		}
+	} else {
+		log.Println("ADMIN_ACCOUNT not set, skipping admin initialization")
+	}
+
 	dbInstance = &Service{DB: db}
 	return dbInstance
 }

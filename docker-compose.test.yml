@@ -10,6 +10,7 @@ services:
       - psql_prod
       - redis_prod
     environment:
+      ADMIN_ACCOUNT: ${ADMIN_ACCOUNT}
       PORT: ${PORT}
       APP_ENV: ${APP_ENV}
       POSTGRES_HOST: ${POSTGRES_HOST}
