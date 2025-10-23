@@ -60,9 +60,5 @@ func (r *AdminRepository) DeleteAll() error {
 		return fmt.Errorf("failed to delete scrape exam jobs: %w", err)
 	}
 
-	if err := r.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Admin{}).Error; err != nil {
-		return fmt.Errorf("failed to delete admins: %w", err)
-	}
-
 	return nil
 }
