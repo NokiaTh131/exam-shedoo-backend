@@ -24,6 +24,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	// === Public routes ===
 	auth := s.App.Group("/auth")
 	auth.Post("/signin", s.AuthHandler.SignIn)
+	auth.Get("/entraidurl", s.AuthHandler.EntraIdUrl)
 
 	s.App.Use(s.AuthMiddleware.AuthRequired())
 

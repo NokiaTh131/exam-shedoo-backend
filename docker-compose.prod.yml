@@ -5,7 +5,7 @@ services:
     container_name: shedoo-backend
     restart: unless-stopped
     ports:
-      - "${PORT}:8080"
+      - "${PORT}:{PORT}"
     depends_on:
       - psql_prod
       - redis_prod

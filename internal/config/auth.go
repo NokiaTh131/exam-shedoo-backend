@@ -16,6 +16,7 @@ type AuthConfig struct {
 	JWTSecret    string
 	IsProd       bool
 	CookieDomain string
+	EntraIdURL   string
 }
 
 func LoadAuthConfig() *AuthConfig {
@@ -29,5 +30,6 @@ func LoadAuthConfig() *AuthConfig {
 		JWTSecret:    os.Getenv("JWT_SECRET"),
 		IsProd:       os.Getenv("PROD") == "true",
 		CookieDomain: os.Getenv("COOKIE_DOMAIN"),
+		EntraIdURL:   os.Getenv("CMU_ENTRAID_URL"),
 	}
 }

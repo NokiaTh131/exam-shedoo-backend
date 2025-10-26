@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"shedoo-backend/internal/app/auth"
+	"shedoo-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -79,4 +80,8 @@ func (h *AuthHandler) SignOut(c *fiber.Ctx) error {
 		SameSite: "Lax",
 	})
 	return c.JSON(fiber.Map{"ok": true})
+}
+
+func (h *AuthHandler) EntraIdUrl(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{"ok": true, "url": config.LoadAuthConfig().EntraIdURL})
 }
