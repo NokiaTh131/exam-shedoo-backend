@@ -64,11 +64,30 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 **Response**: Returns JWT claims with user information
 ```json
 {
+  "cmuitaccount": "john.doe_acc",
   "cmuitaccount_name": "john.doe",
-  "student_id": "123456789",
   "firstname_EN": "John",
+  "firstname_TH": "จอห์น",
+  "itaccounttype_EN": "Student",
+  "itaccounttype_TH": "นักศึกษา",
+  "itaccounttype_id": "StdAcc",
   "lastname_EN": "Doe",
-  // ... other user fields
+  "lastname_TH": "โด",
+  "organization_name_EN": "Faculty of Engineering",
+  "organization_name_TH": "คณะวิศวกรรมศาสตร์",
+  "role": "student",
+  "student_id": "650610XXX"
+}
+```
+
+### GET /auth/entraidurl
+**Purpose**: Get the URL for CMU EntraID sign-in page
+**Authentication**: None required
+**Response**: Returns JWT claims with user information
+```json
+{
+  "ok": true,
+  "url": "https://login.microsoftonline.com/..."
 }
 ```
 
@@ -92,7 +111,18 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 #### GET /admin/scrape/course/status/:id
 **Purpose**: Check status of a course scraping job  
 **Parameters**: `id` - Job ID  
-**Response**: Job details with current status
+**Response**:
+```json
+{
+  "ID": 1,
+  "StartCode": "261100",
+  "EndCode": "261999",
+  "Workers": 4,
+  "Status": "running", // (or pending, completed, failed)
+  "CreatedAt": "2024-01-01T12:00:00Z",
+  "UpdatedAt": "2024-01-01T12:01:00Z"
+}
+```
 
 #### POST /admin/scrape/exams/start/:term
 **Purpose**: Start exam data scraping for a specific term  
@@ -102,7 +132,53 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 #### GET /admin/scrape/exams/status/:id
 **Purpose**: Check status of an exam scraping job  
 **Parameters**: `id` - Job ID  
-**Response**: Job details with current status
+**Response**: 
+```json
+{
+  "ID": 2,
+  "Term": "251",
+  "Status": "running", // (or pending, completed, failed)
+  "CreatedAt": "2024-01-01T12:00:00Z",
+  "UpdatedAt": "2024-01-01T12:01:00Z"
+}
+```
+
+### Admin Role Management
+
+#### GET /admin/
+**Purpose**: List all admin accounts 
+**Response**: Array of admin objects
+```json
+[
+  {
+    "ID": 1,
+    "Account": "admin.user",
+    "CreatedAt": "2024-01-01T10:00:00Z"
+  }
+]
+```
+
+#### POST /admin/
+**Purpose**: Add a new admin by account name
+**Request Body**:
+```json
+{
+  "account": "new.admin"
+}
+```
+
+#### DELETE /admin/:account
+**Purpose**: Remove an admin by account name
+**Request Body**:
+```json
+{"ok": true}
+```
+DELETE /admin/data/all
+**Purpose**: Delete all main data (Enrollments, Courses, Exams, Jobs) from the database
+**Response**: 
+```json
+{"ok": true}
+```
 
 ### Enrollment Management
 
@@ -111,6 +187,7 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 **Content-Type**: `multipart/form-data`  
 **Form Data**: 
 - `file` - Excel or CSV file containing enrollment data
+- `exam_type` - "MIDTERM" or "FINAL"
 **Response**: `{"message": "Imported X records"}`
 
 #### DELETE /admin/enrollments/:id
@@ -130,15 +207,20 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
   {
     "id": 1,
     "course_code": "261200",
-    "course_name": "Data Structures",
     "lec_section": "001",
-    "lab_section": "000", 
+    "course_name": "Data Structures",
+    "lab_section": "000",
     "lec_credit": 2,
     "lab_credit": 1,
-    "instructors": ["Dr. Smith", "Dr. John"],
+    "instructors": [
+      { "name": "Dr. Smith" },
+      { "name": "Dr. John" }
+    ],
     "room": "E12-101",
     "days": "MWF",
     "start_time": "09:00",
+    "semester": "1",
+    "year": "2567",
     "end_time": "10:00"
   }
 ]
@@ -180,7 +262,8 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
   {
     "course_id": 1,
     "course_code": "261200",
-    "course_name": "Data Structures", 
+    "course_name": "Data Structures",
+    "exam_id": 10,
     "lec_section": "1",
     "lab_section": "1",
     "midterm_date": "2024-03-15",
@@ -217,15 +300,16 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 **Request Body**:
 ```json
 {
-  "course_code": "261200",
-  "lec_section": "1",
-  "lab_section": "1",
-  "midterm_exam_date": "25   MAR",
-  "midterm_exam_start_time": "09:00",
-  "midterm_exam_end_time": "11:00",
-  "final_exam_date": "25   OCT", 
-  "final_exam_start_time": "13:00",
-  "final_exam_end_time": "15:00"
+  "CourseCode": "261200",
+  "LecSection": "1",
+  "LabSection": "1",
+  "CourseID": 1,
+  "MidtermExamDate": "25  MAR",
+  "MidtermExamStartTime": "0900",
+  "MidtermExamEndTime": "1100",
+  "FinalExamDate": "25  OCT",
+  "FinalExamStartTime": "1300",
+  "FinalExamEndTime": "1500"
 }
 ```
 **Response**: Created exam object
@@ -236,12 +320,12 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 **Request Body** (all fields optional):
 ```json
 {
-  "midterm_exam_date": "25   MAR",
-  "final_exam_date": "25   OCT", 
-  "midterm_exam_start_time": "10:00",
-  "final_exam_start_time": "14:00",
-  "midterm_exam_end_time": "12:00",
-  "final_exam_end_time": "16:00"
+  "midtermExamDate": "25  MAR",
+  "finalExamDate": "25  OCT",
+  "midtermExamStartTime": "1000",
+  "finalExamStartTime": "1400",
+  "midtermExamEndTime": "1200",
+  "finalExamEndTime": "1600"
 }
 ```
 **Response**: `{"message": "updated examdate"}`
@@ -256,12 +340,15 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
     "course_id": 1,
     "course_code": "261200",
     "course_name": "Data Structures",
-    "lec_section": "1", 
+    "exam_id": 10,
+    "lec_section": "1",
     "lab_section": "1",
-    "number_of_relevant_students": 45,
-    "exam_date": "20   OCT",
-    "start_time": "09:00",
-    "end_time": "11:00"
+    "midterm_date": "2024-03-15",
+    "midterm_start_time": "09:00",
+    "midterm_end_time": "11:00",
+    "final_date": "2024-05-20",
+    "final_start_time": "13:00",
+    "final_end_time": "15:00"
   }
 ]
 ```
@@ -272,132 +359,75 @@ All routes are prefixed with your server's base URL (e.g., `http://localhost:808
 **Response**: 
 ```json
 {
-    "midterm": [
+  "midterm": [
+    {
+      "date": "AUG  31",
+      "start_time": "0800",
+      "end_time": "1100",
+      "courses": [
         {
-            "date": "AUG  31",
-            "start_time": "0800",
-            "end_time": "1100",
-            "courses": [
-                {
-                    "course_id": 256,
-                    "course_code": "291494",
-                    "course_name": "SELECT TOPIC",
-                    "lec_section": "006",
-                    "lab_section": "000",
-                    "student_count": 2
-                }
-            ]
-        },
-        {
-            "date": "AUG  26",
-            "start_time": "0800",
-            "end_time": "1100",
-            "courses": [
-                {
-                    "course_id": 257,
-                    "course_code": "291494",
-                    "course_name": "SELECT TOPIC",
-                    "lec_section": "003",
-                    "lab_section": "000",
-                    "student_count": 2
-                }
-            ]
-        },
-        {
-            "date": "AUG  25",
-            "start_time": "1200",
-            "end_time": "1500",
-            "courses": [
-                {
-                    "course_id": 198,
-                    "course_code": "001101",
-                    "course_name": "Fundamental English 1",
-                    "lec_section": "717",
-                    "lab_section": "000",
-                    "student_count": 1
-                }
-            ]
-        },
-        {
-            "date": "AUG  25",
-            "start_time": "0800",
-            "end_time": "1100",
-            "courses": [
-                {
-                    "course_id": 223,
-                    "course_code": "001102",
-                    "course_name": "Fundamental English 2",
-                    "lec_section": "003",
-                    "lab_section": "000",
-                    "student_count": 1
-                },
-                {
-                    "course_id": 226,
-                    "course_code": "001102",
-                    "course_name": "Fundamental English 2",
-                    "lec_section": "008",
-                    "lab_section": "000",
-                    "student_count": 1
-                }
-            ]
+          "course_id": 256,
+          "course_code": "291494",
+          "course_name": "SELECT TOPIC",
+          "lec_section": "006",
+          "lab_section": "000",
+          "students": [
+            { "student_code": "650610111" },
+            { "student_code": "650610112" }
+          ]
         }
-    ],
-    "final": [
+      ]
+    },
+    {
+      "date": "AUG  26",
+      "start_time": "0800",
+      "end_time": "1100",
+      "courses": [
         {
-            "date": "OCT  20",
-            "start_time": "0800",
-            "end_time": "1100",
-            "courses": [
-                {
-                    "course_id": 256,
-                    "course_code": "291494",
-                    "course_name": "SELECT TOPIC",
-                    "lec_section": "006",
-                    "lab_section": "000",
-                    "student_count": 2
-                },
-                {
-                    "course_id": 257,
-                    "course_code": "291494",
-                    "course_name": "SELECT TOPIC",
-                    "lec_section": "003",
-                    "lab_section": "000",
-                    "student_count": 2
-                },
-                {
-                    "course_id": 223,
-                    "course_code": "001102",
-                    "course_name": "Fundamental English 2",
-                    "lec_section": "003",
-                    "lab_section": "000",
-                    "student_count": 1
-                },
-                {
-                    "course_id": 226,
-                    "course_code": "001102",
-                    "course_name": "Fundamental English 2",
-                    "lec_section": "008",
-                    "lab_section": "000",
-                    "student_count": 1
-                }
-            ]
+          "course_id": 257,
+          "course_code": "291494",
+          "course_name": "SELECT TOPIC",
+          "lec_section": "003",
+          "lab_section": "000",
+          "students": [
+            { "student_code": "650610111" },
+            { "student_code": "650610112" }
+          ]
+        }
+      ]
+    }
+  ],
+  "final": [
+    {
+      "date": "OCT  20",
+      "start_time": "0800",
+      "end_time": "1100",
+      "courses": [
+        {
+          "course_id": 256,
+          "course_code": "291494",
+          "course_name": "SELECT TOPIC",
+          "lec_section": "006",
+          "lab_section": "000",
+          "students": [
+            { "student_code": "650610111" },
+            { "student_code": "650610112" }
+          ]
         },
         {
-            "date": "OCT  20",
-            "start_time": "1200",
-            "end_time": "1500",
-            "courses": [
-                {
-                    "course_id": 198,
-                    "course_code": "001101",
-                    "course_name": "Fundamental English 1",
-                    "lec_section": "717",
-                    "lab_section": "000",
-                    "student_count": 1
-                }
-            ]
+          "course_id": 257,
+          "course_code": "291494",
+          "course_name": "SELECT TOPIC",
+          "lec_section": "003",
+          "lab_section": "000",
+          "students": [
+            { "student_code": "650610111" },
+            { "student_code": "650610112" }
+          ]
         }
-    ]
+      ]
+    }
+  ]
 }
 ```
 
